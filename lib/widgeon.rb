@@ -7,10 +7,18 @@ module Widgeon
     #
     #   <%= widget(:sidebar, :title => 'My Shiny Sidebar')%>
     def widget(widget_name, options = {})
+      raise ArgumentError unless Widget.widget_defined?(widget_name)
+      options.update(:controller => controller, :request => request)
+      instance_eval <<-END
+        @#{widget_name}_widget = #{widget_name.to_s.camelize}Widget.new(options)
+        @#{widget_name}_widget.before_render if @#{widget_name}_widget.respond_to?(:before_render)
+      END
+      render :partial => "widgets/#{widget_name}/#{widget_name}_widget"
     end
   end
   
   class Widget
+    attr_accessor :request, :controller
     class << self
       # Load the widgets from their folder.
       def load_widgets
@@ -49,7 +57,6 @@ module Widgeon
         'app/views/widgets'
       end
 
-      
       # Return the widget name starting from the file name.
       #
       # Example:
@@ -61,8 +68,16 @@ module Widgeon
       end
     end
     
-    def initialize(options = {}) # :nodoc:
-      options.each {|var_name, value| self.instance_variable_set("@#{var_name}".to_sym, value) }
+    # Instantiate a new object, putting the <tt>request</tt> and the
+    # <tt>controller</tt> objects into the widget.
+    def initialize(options = {})
+      options.each do |att, value|
+        instance_eval <<-END
+          def #{att}; @#{att} end
+          def #{att}=(value); @#{att} = value end
+        END
+        self.send("#{att}=", value) #set
+      end
     end
   end
 end
@@ -73,4 +88,8 @@ module ActionView # :nodoc:
       include Widgeon::Helpers
     end
   end
+end
+
+ActionView::Base.class_eval do
+  include ActionView::Helpers::Widgets
 end
