@@ -3,6 +3,81 @@ Widgeon
 
 Widgeon is a widget system for Ruby on Rails.
 
+Install
+=======
+
+$ ./script/plugin install http://talia.discovery-project.eu/svn/talia/repository/widgeon/trunk
+
+Uninstall
+=========
+
+$ ./script/plugin delete widgeon
+
+Notice: this operation will *destroy* all your widgets.
+
+How to use
+==========
+
+In your view files:
+<%= widget(:widget_name) %>
+
+You can also pass params:
+<%= widget(:widget_name, :param_one => 'one', :param_two => 'two') %>
+
+How To develop a widget
+=======================
+
+First create a widget (see related section), the process will create two files:
+and helper and a class.
+For convention all params passed to the <tt>widget</tt> method will be available
+into the widget object.
+
+Example:
+  <%= widget(:sidebar, :entries => 1..3) %>
+  
+  @sidebar_widget.entries #=> 1..3
+
+Now you can easily guess that in your helpers you can use an instance variable
+called (by convention) with the 'underscored' name of the class
+(HelloWorldWidget #=> @hello_world_widget).
+
+Now I can image that it isn't enough for you ;-) and I know you want to
+manipulate the params passed to #widget. Ok, I have a solution: implement
+#before_render in your class and this will be called for you. :-P
+
+Example:
+  app/views/index.rhtml:
+  <h1><%= widget(:greeter, :name => 'luca') %></h1>
+
+  widgets/greeter_widget.rb:
+  class GreeterWidget < Widgeon::Widget
+    def before_render
+      name = name.titleize
+    end
+  end
+
+  app/views/widgets/greeter/_greeter.rhtml:
+  Welcome <%= @greeter_widget.name %>!!
+  
+  The result will be:
+  <h1>Welcome Luca!!</h1>
+  
+Create a widget
+===============
+
+$ ./script/generate widget HelloWorld
+
+This creates <tt>widgets/hello_world_widget.rb</tt> and
+<tt>app/views/widgets/hello_world/_hello_world_widget.rhtml</tt>.
+
+Destroy a widget
+================
+
+$ ./script/destroy widget HelloWorld
+
+This creates <tt>widgets/hello_world_widget.rb</tt> and
+<tt>app/views/widgets/hello_world/_hello_world_widget.rhtml</tt>.
+
 
 
 Copyright (c) 2007 Luca Guidi, released under the MIT license.
