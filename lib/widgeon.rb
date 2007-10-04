@@ -42,8 +42,13 @@ module Widgeon
       end
       
       def widgets_folder #:nodoc:
-        @widgets_folder ||= File.join(RAILS_ROOT, 'widgets')
+        @widgets_folder ||= 'widgets'
       end
+
+      def views_folder #:nodoc:
+        'app/views/widgets'
+      end
+
       
       # Return the widget name starting from the file name.
       #
