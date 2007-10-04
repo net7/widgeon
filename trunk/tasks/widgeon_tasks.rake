@@ -5,7 +5,8 @@ require 'fileutils'
 
 rails_root	 = File.expand_path(RAILS_ROOT)
 plugin_root	 = File.join(rails_root, 'vendor', 'plugins', 'widgeon')
-widgets_root = File.join(rails_root, 'vendor', 'widgets')
+widgets_root = File.join(rails_root, 'widgets')
+view_root    = File.join(rails_root, 'app', 'views', 'widgets')
 
 desc "Default task for widgeon plugin (test task)."
 task :widgeon => :default
@@ -26,7 +27,7 @@ namespace :widgeon do
 
   desc "Install the widgeon plugin."
   task :install do
-    FileUtils.mkdir(widgets_root) unless File.directory?(widgets_root)
+    [widgets_root, view_root].each { |dir| FileUtils.mkdir(dir) unless File.directory?(dir) }
   end
   
   desc 'Generate documentation for the widgeon plugin.'
