@@ -77,7 +77,3 @@ $ ./script/destroy widget HelloWorld
 
 This creates <tt>widgets/hello_world_widget.rb</tt> and
 <tt>app/views/widgets/hello_world/_hello_world_widget.rhtml</tt>.
-
-
-
-Copyright (c) 2007 Luca Guidi, released under the MIT license.
