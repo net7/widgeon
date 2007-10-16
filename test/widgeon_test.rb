@@ -25,7 +25,7 @@ class WidgeonTest < Test::Unit::TestCase
     @views_folder       = File.join('app', 'views', 'widgets')
     @new_widgets_folder = File.join(rails_root, 'vendor', 'plugins', 'widgeon', 'test', 'fixtures')
     @hello_world_file   = File.join(@new_widgets_folder, 'hello_world_widget.rb')
-    @loaded_widgets     = [:hello_world].to_set
+    @loaded_widgets     = [:hello_world, :subdir].to_set
     
     @response = ActionController::TestResponse.new
   end
@@ -85,9 +85,23 @@ class WidgeonTest < Test::Unit::TestCase
     assert !Widget.widget_defined?(:unexistent)
   end
   
+  def test_widget_subdir_defined
+    test_widget_loaded_widgets
+    
+    Widget.widgets_folder = @new_widgets_folder
+    assert Widget.widget_defined?(:subdir)
+  end
+  
   def test_widget_initalize
     widget = HelloWorldWidget.new(:name => 'hello world')
     assert_equal('hello world', widget.name)
+  end
+  
+  def test_widget_before_render_call
+    widget = HelloWorldWidget.new(:name => 'hello world')
+    widget.before_render_call
+    assert_equal('after render', widget.name)
+    assert_equal('new option', widget.new_option)
   end
   
   def test_helper_widget
@@ -96,8 +110,5 @@ class WidgeonTest < Test::Unit::TestCase
     assert_raise(ArgumentError) { widget(:unexistent) }
     
     assert_nothing_raised(ArgumentError) { widget(:hello_world) }
-    assert_kind_of(HelloWorldWidget, @hello_world_widget)
-    assert_kind_of(WidgeonController, @hello_world_widget.controller)
-    assert_kind_of(ActionController::TestRequest, @hello_world_widget.request)
   end
 end
