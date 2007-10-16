@@ -5,7 +5,7 @@ require 'fileutils'
 
 rails_root	 = File.expand_path(RAILS_ROOT)
 plugin_root	 = File.join(rails_root, 'vendor', 'plugins', 'widgeon')
-widgets_root = File.join(rails_root, 'widgets')
+widgets_root = File.join(rails_root, 'app', 'views', 'widgets')
 view_root    = File.join(rails_root, 'app', 'views', 'widgets')
 
 desc "Default task for widgeon plugin (test task)."
