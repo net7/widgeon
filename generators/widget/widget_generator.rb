@@ -8,7 +8,7 @@ class WidgetGenerator < Rails::Generator::NamedBase
   def manifest
     record do |m|
       # Check for class collisions
-      m.class_collisions Widgeon::Widget.widgets_folder, class_name
+      m.class_collisions class_name
       
       m.directory File.join(Widgeon::Widget.views_folder, name.underscore)
       
