@@ -7,16 +7,21 @@ module Widgeon
     #
     #   <%= widget(:sidebar, :title => 'My Shiny Sidebar')%>
     def widget(widget_name, options = {})
-      raise(ArgumentError, "Widget not loaded: #{widget_name}") unless Widget.widget_defined?(widget_name)
       options.update(:controller => controller, :request => request, :widget_name => widget_name)
-      # Get the class of the widget and check, just to be sure
-      klass = Kernel.const_get("#{widget_name.to_s.camelize}Widget")
-      raise(RuntimeError, "Widget class does not exist") unless(klass.is_a?(Class))
       
-      widget = klass.new(options)
-      widget.before_render_call
+      # Widget is made a class variable, so that it is automtically available to the
+      # helper
+      @widget = Widget.create_widget(widget_name, options)
+      @widget.before_render_call
       
-      render(:partial => "widgets/#{widget_name}/#{widget_name}_widget", :locals => {  widget_name.to_sym => widget })
+      render(:partial => "widgets/#{widget_name}/#{widget_name}_widget", :locals => {  widget_name.to_sym => @widget })
+    end
+    
+    # Helper to render a partial in the widget folder
+    def widget_partial(partial, options = {})
+      options[:partial] = File.join(@widget.self_folder, partial)
+      options[:locals] = { :widget => @widget }
+      render(options)
     end
   end
   
@@ -30,20 +35,35 @@ module Widgeon
       # The first result group will contain the widget name
       @@widget_name_re = Regexp.new('([^\\/\\\\]+)_widget\..*$')
       
-      # Load the widgets from their folder.
-      def load_widgets
-        raise(ArgumentError, "No widget folder set") if widgets_folder.nil?
-        Dir["#{widgets_folder}/**/*_widget.rb"].each do |widget|
-          unless loaded_widgets.include?(widget)
-            require widget
-            loaded_widgets << widget_name(widget).to_sym
-          end
+      # Attempts to load the widget with the given name. The behaviour depends
+      # on Rails::Configuration.cache_classes: If that is set to false, the
+      # file will always be reloaded. If true, the widget class will be
+      # loaded only once.
+      def load_widget(widget_name)
+        # Dendencies.mechanis is :load or :require, respectively
+        unless(Dependencies.mechanism == :require && widget_defined?(widget_name))
+          raise(ArgumentError, "No widget folder set") if widgets_folder.nil?
+          load "#{widgets_folder}/#{widget_name}/#{widget_name}_widget.rb"
+          loaded_widgets << widget_name.to_sym
         end
+        raise(ArgumentError, "Unable to load widget: #{widget_name}") unless(widget_defined?(widget_name))
+      end
+      
+      # Creates a widget from the given widget name
+      def create_widget(widget_name, options = {})
+        load_widget(widget_name)
+        
+        # Get the class of the widget and check, just to be sure
+        klass = Kernel.const_get("#{widget_name.to_s.camelize}Widget")
+        raise(RuntimeError, "Widget class does not exist") unless(klass.is_a?(Class))
+
+        # Create the new widget
+        klass.new(options)
       end
       
       # Check if a widget is defined
       def widget_defined?(widget_name)
-        loaded_widgets.include?(widget_name)
+        loaded_widgets.include?(widget_name.to_sym)
       end
       
       def loaded_widgets # :nodoc:
@@ -66,19 +86,7 @@ module Widgeon
       def views_folder #:nodoc:
         'app/views/widgets'
       end
-
-      # Return the widget name starting from the file name.
-      #
-      # Example:
-      #
-      #   file_name = 'path/to/widgets/sidebar_widget.rb'
-      #   Widgeon::Widget.widget_name(file_name) # => sidebar
-      def widget_name(file_name)
-        unless(md = @@widget_name_re.match(file_name))
-          raise(ArgumentError, "Filename #{file_name} is not a legal widget file") 
-        end
-        md[1] # Return the first result group of the RE match
-       end
+      
     end
     
     # END OF CLASS METHODS
