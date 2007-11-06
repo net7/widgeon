@@ -20,12 +20,13 @@ class WidgeonTest < Test::Unit::TestCase
   include ActionView::Helpers::Widgets
   
   def setup
-    rails_root          = File.expand_path(RAILS_ROOT)
-    @widgets_folder     = File.join(rails_root, 'widgets')
-    @views_folder       = File.join('app', 'views', 'widgets')
-    @new_widgets_folder = File.join(rails_root, 'vendor', 'plugins', 'widgeon', 'test', 'fixtures')
-    @hello_world_file   = File.join(@new_widgets_folder, 'hello_world_widget.rb')
-    @loaded_widgets     = [:hello_world, :subdir].to_set
+    rails_root            = File.expand_path(RAILS_ROOT)
+    @widgets_folder       = File.join(rails_root, 'widgets')
+    @views_folder         = File.join('app', 'views', 'widgets')
+    @test_widgets_folder  = File.join(rails_root, 'vendor', 'plugins', 'widgeon', 'test', 'fixtures')
+    @hello_world_file     = File.join(@test_widgets_folder, 'hello_world_widget.rb')
+    @loaded_widgets       = [:hello_world].to_set
+    Widget.widgets_folder = @test_widgets_folder
     
     @response = ActionController::TestResponse.new
   end
@@ -46,69 +47,56 @@ class WidgeonTest < Test::Unit::TestCase
     assert defined?(Widget)
   end
   
-  def test_widget_widgets_folder_set
-    test_widget_widgets_folder
-    
-    Widget.widgets_folder = @new_widgets_folder
-    assert_equal(@new_widgets_folder, Widget.widgets_folder)
+  def test_widgets_folder_set
+    Widget.widgets_folder = "new_path"
+    assert_equal("new_path", Widget.widgets_folder)
   end
   
-  def test_widget_widgets_folder
-    assert_equal(@widgets_folder, Widget.widgets_folder)
+  def test_widgets_folder
+    assert_equal(@test_widgets_folder, Widget.widgets_folder)
   end
 
-  def test_widget_views_folder
+  def test_views_folder
     assert_equal(@views_folder, Widget.views_folder)
   end
   
-  def test_widget_widget_name
-    Widget.widgets_folder = @new_widgets_folder
-    assert_equal('hello_world', Widget.widget_name(@hello_world_file))
+  def test_loaded_widget
+    Widget.load_widget('hello_world')
+    assert_equal(Widget.loaded_widgets, @loaded_widgets)
   end
   
-  def test_widget_loaded_widgets
-    test_widget_load_widgets
-
-    assert_equal(@loaded_widgets, Widget.loaded_widgets)
+  def test_create_widget
+    widget = Widget.create_widget('hello_world')
+    assert(defined?(HelloWorldWidget))
+    assert_kind_of(HelloWorldWidget, widget)
   end
   
-  def test_widget_load_widgets
-    Widget.widgets_folder = @new_widgets_folder
-    assert_nothing_raised(ArgumentError) { Widget.load_widgets }
+  def test_load_widget_fail
+    assert_raises(MissingSourceFile) { Widget.load_widget('hello_moon') }
   end
   
   def test_widget_defined
-    test_widget_loaded_widgets
+    Widget.load_widget('hello_world')
     
-    Widget.widgets_folder = @new_widgets_folder
     assert Widget.widget_defined?(:hello_world)
     assert !Widget.widget_defined?(:unexistent)
   end
   
-  def test_widget_subdir_defined
-    test_widget_loaded_widgets
-    
-    Widget.widgets_folder = @new_widgets_folder
-    assert Widget.widget_defined?(:subdir)
-  end
-  
-  def test_widget_initalize
+  def test_initalize
     widget = HelloWorldWidget.new(:name => 'hello world')
     assert_equal('hello world', widget.name)
   end
   
-  def test_widget_before_render_call
-    widget = HelloWorldWidget.new(:name => 'hello world')
+  def test_before_render_call
+    widget = Widget.create_widget(:hello_world, :name => 'hello world')
     widget.before_render_call
     assert_equal('after render', widget.name)
     assert_equal('new option', widget.new_option)
   end
   
   def test_helper_widget
-    test_widget_load_widgets
+    assert_raise(MissingSourceFile) { widget(:unexistent) }
     
-    assert_raise(ArgumentError) { widget(:unexistent) }
-    
-    assert_nothing_raised(ArgumentError) { widget(:hello_world) }
+    assert_nothing_raised(MissingSourceFile) { widget(:hello_world) }
   end
 end
