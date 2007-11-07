@@ -1,3 +1,3 @@
 task :cruise do
-  puts 'Dummy task for cruise control'
+  puts 'Dummy task for cruise control.'
 end
