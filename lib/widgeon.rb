@@ -87,6 +87,14 @@ module Widgeon
         'app/views/widgets'
       end
       
+      # This method return the widget name.
+      #
+      # Example:
+      #
+      #   HelloWorldWidget.name # => 'hello_world'
+      def widget_name
+        self.name.demodulize.underscore.gsub(/_widget/, '')
+      end
     end
     
     # END OF CLASS METHODS
@@ -142,8 +150,7 @@ module Widgeon
     end
     
     def load_configuration
-      widget_name = self.class.name.underscore.gsub(/_widget/, '')
-      path_to_configuration = File.join(Widget.widgets_folder, widget_name, widget_name+'.yml')
+      path_to_configuration = File.join(Widget.widgets_folder, self.class.widget_name, self.class.widget_name+'.yml')
       return unless File.exists?(path_to_configuration)
       YAML::load_file(path_to_configuration).to_hash.each do |att, value|
         create_instance_accessor(att, value)
@@ -151,6 +158,8 @@ module Widgeon
     end
   end
 end
+
+class NotImplemented < ArgumentError; end
 
 module ActionView # :nodoc:
   module Helpers # :nodoc:

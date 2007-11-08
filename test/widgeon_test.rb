@@ -86,6 +86,17 @@ class WidgeonTest < Test::Unit::TestCase
     assert !Widget.widget_defined?(:unexistent)
   end
   
+  def test_widget_name
+    assert_equal('widget', Widgeon::Widget.widget_name)
+
+    @loaded_widgets.each do |widget|
+      widget = widget.to_s
+      Widget.load_widget(widget)
+      widget_klass = "#{widget}Widget".camelize.constantize
+      assert_equal(widget, widget_klass.widget_name)
+    end
+  end
+  
   def test_initalize
     widget = HelloWorldWidget.new(:name => 'hello world')
     assert_equal('hello world', widget.name)
