@@ -1,0 +1,6 @@
+simple_value: 23
+
+endpoint:
+  host: localhost
+  port: 3000
+  path: widgets

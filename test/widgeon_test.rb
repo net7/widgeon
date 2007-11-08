@@ -3,6 +3,9 @@ require 'test/unit'
 require 'fileutils'
 require 'vendor/plugins/widgeon/test/test_helper'
 
+require 'rubygems'
+require 'ruby-debug'
+
 class WidgeonController < ApplicationController
   def rescue_action(e) raise e end;
 end
@@ -25,7 +28,8 @@ class WidgeonTest < Test::Unit::TestCase
     @views_folder         = File.join('app', 'views', 'widgets')
     @test_widgets_folder  = File.join(rails_root, 'vendor', 'plugins', 'widgeon', 'test', 'fixtures')
     @hello_world_file     = File.join(@test_widgets_folder, 'hello_world_widget.rb')
-    @loaded_widgets       = [:hello_world].to_set
+    @loaded_widgets       = [:hello_world, :configured].to_set
+    @configuration        = {'host' => 'localhost', 'port' => 3000, 'path' => 'widgets'}
     Widget.widgets_folder = @test_widgets_folder
     
     @response = ActionController::TestResponse.new
@@ -85,6 +89,11 @@ class WidgeonTest < Test::Unit::TestCase
   def test_initalize
     widget = HelloWorldWidget.new(:name => 'hello world')
     assert_equal('hello world', widget.name)
+    
+    Widget.load_widget('configured')
+    widget = ConfiguredWidget.new
+    assert_equal(23, widget.simple_value)
+    assert_equal(@configuration, widget.endpoint)
   end
   
   def test_before_render_call

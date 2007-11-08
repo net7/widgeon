@@ -94,6 +94,7 @@ module Widgeon
     # Instantiate a new object, putting the <tt>request</tt> and the
     # <tt>controller</tt> objects into the widget.
     def initialize(options = {})
+      load_configuration
       options.each do |att, value|
         create_instance_accessor(att, value)
       end
@@ -138,6 +139,15 @@ module Widgeon
         end
       end
       self.send("#{name}=", value) if(value) #set
+    end
+    
+    def load_configuration
+      widget_name = self.class.name.underscore.gsub(/_widget/, '')
+      path_to_configuration = File.join(Widget.widgets_folder, widget_name, widget_name+'.yml')
+      return unless File.exists?(path_to_configuration)
+      YAML::load_file(path_to_configuration).to_hash.each do |att, value|
+        create_instance_accessor(att, value)
+      end
     end
   end
 end
