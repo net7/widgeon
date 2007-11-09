@@ -3,9 +3,6 @@ require 'test/unit'
 require 'fileutils'
 require 'vendor/plugins/widgeon/test/test_helper'
 
-require 'rubygems'
-require 'ruby-debug'
-
 class WidgeonController < ApplicationController
   def rescue_action(e) raise e end;
 end
@@ -109,6 +106,8 @@ class WidgeonTest < Test::Unit::TestCase
     widget = ConfiguredWidget.new
     assert_equal(23, widget.simple_value)
     assert_equal(@configuration, widget.endpoint)
+    key = widget.send(:session_key, true)
+    assert widget.request.session[key].empty?
   end
   
   def test_before_render_call
@@ -128,9 +127,25 @@ class WidgeonTest < Test::Unit::TestCase
     widget.page_state[:page_stuff] = 'some bla bla'
     assert_equal('some bla bla', widget.page_state[:page_stuff])
     
-    # anoter render
+    # another render
     widget.before_render_call
     assert widget.page_state.empty?
+  end
+  
+  def test_permanent_state
+    widget = Widget.create_widget(:hello_world, :name => 'hello world')
+    assert widget.permanent_state.empty?
+    widget.before_render_call
+    widget.permanent_state[:permanent_stuff] = 'some bla bla'
+    assert_equal('some bla bla', widget.permanent_state[:permanent_stuff])
+    
+    # another render
+    widget.before_render_call
+    assert_equal('some bla bla', widget.permanent_state[:permanent_stuff])
+    
+    # explicit flush
+    widget.clean_permanent_state
+    assert widget.permanent_state.empty?
   end
   
   def test_create_page_state
@@ -161,6 +176,36 @@ class WidgeonTest < Test::Unit::TestCase
     widget.send(:create_page_state)
     assert_kind_of(Hash, widget.request.session[key])
     assert widget.request.session[key].empty?
+  end
+  
+  def test_create_permanent_state
+    # without :identifier and clean session
+    widget = Widget.create_widget(:hello_world)
+    key = widget.send(:session_key, true)
+    widget.send(:create_permanent_state)
+    assert_kind_of(Hash, widget.request.session[key])
+    assert widget.request.session[key].empty?
+    
+    # without :identifier with session
+    widget.request.session[key] = { :plugin => 'widgeon' }
+    assert_not_nil(widget.request.session[key])
+    widget.send(:create_permanent_state)
+    assert_kind_of(Hash, widget.request.session[key])
+    assert widget.request.session[key].empty?
+    
+    # with :identifier and clean session
+    widget = Widget.create_widget(:hello_world, :identifier => 'id')
+    key = widget.send(:session_key, true)
+    widget.send(:create_permanent_state)
+    assert_kind_of(Hash, widget.request.session[key])
+    assert widget.request.session[key].empty?
+    
+    # with :identifier and with session
+    widget.request.session[key] = { :plugin => 'widgeon' }
+    assert_not_nil(widget.request.session[key])
+    widget.send(:create_permanent_state)
+    assert_kind_of(Hash, widget.request.session[key])
+    assert widget.request.session[key].empty?    
   end
   
   def test_session_key

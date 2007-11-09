@@ -99,13 +99,16 @@ module Widgeon
     
     # END OF CLASS METHODS
     
-    # Instantiate a new object, putting the <tt>request</tt> and the
+    # Instantiate a new object, create a <b>permanent state</b> into the 
+    # <tt>session</tt> and put the <tt>request</tt> and the
     # <tt>controller</tt> objects into the widget.
+    #
+    # If the param <tt>:identifier</tt> was passed, it will be used as part of
+    # the <b>page state</b> and <b>permanent state</b> identifier.
     def initialize(options = {})
       load_configuration
-      options.each do |att, value|
-        create_instance_accessor(att, value)
-      end
+      options.each { |att, value| create_instance_accessor(att, value) }
+      create_permanent_state
     end
     
     # This is called by the helper before the widget is rendered. It will
@@ -124,7 +127,17 @@ module Widgeon
     
     # Return the <b>page state</b>.
     def page_state
-      request.session[session_key]
+      widget_state
+    end
+    
+    # Return the <b>permanent state</b>.
+    def permanent_state
+      widget_state(true)
+    end
+    
+    # Clean the <b>permanent state</b>.
+    def clean_permanent_state
+      create_permanent_state
     end
     
     protected
@@ -162,9 +175,22 @@ module Widgeon
       end
     end
     
-    # Create a new <b>on page</b> state.
+    # Create a new <b>page</b> state.
     def create_page_state
-      request.session[session_key] = {}
+      create_state
+    end
+    
+    # Create a new <b>permanent</b> state.
+    def create_permanent_state
+      create_state(true)
+    end
+    
+    def create_state(permanent = false) #:nodoc:
+      request.session[session_key(permanent)] = {}
+    end
+    
+    def widget_state(permanent = false) #:nodoc:
+      request.session[session_key(permanent)]
     end
     
     # Return the session key for the state.
@@ -195,7 +221,7 @@ module Widgeon
       id = self.respond_to?(:identifier) ? identifier : 'default'
       context = permanent ? 'permanent' : 'page'
       "widget_#{self.class.widget_name}_#{id}_#{context}".to_sym
-    end
+    end    
   end
 end
 
