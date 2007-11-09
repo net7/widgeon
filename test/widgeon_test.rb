@@ -11,10 +11,14 @@ class WidgeonController < ApplicationController
 end
 module WidgeonHelper; end
 
+Widgeon::Widget.class_eval do
+  def controller; @controller ||= WidgeonController.new end
+  def request; @request ||= ActionController::TestRequest.new end
+end
+
 Widgeon::Helpers.class_eval do
   def controller; @controller = WidgeonController.new end
   def request; @request = ActionController::TestRequest.new end
-#  def render(options = nil, &block); ActionController::Base.send(:render, options, &block) end
   def render(options = nil, &block); end
 end
 
@@ -112,6 +116,63 @@ class WidgeonTest < Test::Unit::TestCase
     widget.before_render_call
     assert_equal('after render', widget.name)
     assert_equal('new option', widget.new_option)
+    key = widget.send(:session_key)
+    assert_kind_of(Hash, widget.request.session[key])
+    assert widget.request.session[key].empty?
+  end
+  
+  def test_page_state
+    widget = Widget.create_widget(:hello_world, :name => 'hello world')
+    widget.before_render_call
+    assert widget.page_state.empty?
+    widget.page_state[:page_stuff] = 'some bla bla'
+    assert_equal('some bla bla', widget.page_state[:page_stuff])
+    
+    # anoter render
+    widget.before_render_call
+    assert widget.page_state.empty?
+  end
+  
+  def test_create_page_state
+    # without :identifier and clean session
+    widget = Widget.create_widget(:hello_world)
+    key = widget.send(:session_key)
+    widget.send(:create_page_state)
+    assert_kind_of(Hash, widget.request.session[key])
+    assert widget.request.session[key].empty?
+    
+    # without :identifier with session
+    widget.request.session[key] = { :plugin => 'widgeon' }
+    assert_not_nil(widget.request.session[key])
+    widget.send(:create_page_state)
+    assert_kind_of(Hash, widget.request.session[key])
+    assert widget.request.session[key].empty?
+    
+    # with :identifier and clean session
+    widget = Widget.create_widget(:hello_world, :identifier => 'id')
+    key = widget.send(:session_key)
+    widget.send(:create_page_state)
+    assert_kind_of(Hash, widget.request.session[key])
+    assert widget.request.session[key].empty?
+    
+    # with :identifier and with session
+    widget.request.session[key] = { :plugin => 'widgeon' }
+    assert_not_nil(widget.request.session[key])
+    widget.send(:create_page_state)
+    assert_kind_of(Hash, widget.request.session[key])
+    assert widget.request.session[key].empty?
+  end
+  
+  def test_session_key
+    widget = Widget.create_widget(:hello_world)
+    assert_equal(:widget_hello_world_default_page, widget.send(:session_key))
+
+    assert_equal(:widget_hello_world_default_permanent, widget.send(:session_key, true))
+
+    widget = Widget.create_widget(:hello_world, :identifier => 'id')
+    assert_equal(:widget_hello_world_id_page, widget.send(:session_key))
+
+    assert_equal(:widget_hello_world_id_permanent, widget.send(:session_key, true))
   end
   
   def test_helper_widget

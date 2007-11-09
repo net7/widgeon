@@ -109,9 +109,10 @@ module Widgeon
     end
     
     # This is called by the helper before the widget is rendered. It will
-    # automatically call the before_render method, if one is defined in the
-    # class
+    # automatically create a new <b>on page state</b> and call the 
+    # <tt>before_render</tt> method, if one is defined in the class.
     def before_render_call
+      create_page_state
       before_render if(respond_to?(:before_render))
       create_accessors
     end
@@ -121,8 +122,12 @@ module Widgeon
       File.join('widgets', widget_name.to_s)
     end
     
-    protected
+    # Return the <b>page state</b>.
+    def page_state
+      request.session[session_key]
+    end
     
+    protected
     # Create accessors for all instance variables that don't have one alredady
     def create_accessors
       instance_variables.each do |var|
@@ -155,6 +160,41 @@ module Widgeon
       YAML::load_file(path_to_configuration).to_hash.each do |att, value|
         create_instance_accessor(att, value)
       end
+    end
+    
+    # Create a new <b>on page</b> state.
+    def create_page_state
+      request.session[session_key] = {}
+    end
+    
+    # Return the session key for the state.
+    # If <tt>:identifier</tt> is defined, will be used into the key,
+    # else it will be used <tt>default</tt>.
+    #
+    # If <tt>permanent</tt> is <tt>true</tt> the key will be generated for the
+    # <b>permanent</b> state, else for the <b>page</b> one.
+    #
+    # Example:
+    #
+    #   @hello_world = HelloWorldWidget.new
+    #   @hello_world.send(:session_key)
+    #     => :widget_hello_world_default_page
+    #
+    #   @hello_world = HelloWorldWidget.new(:identifier => 'id')
+    #   @hello_world.send(:session_key)
+    #     => :widget_hello_world_id_page
+    #
+    #   @hello_world = HelloWorldWidget.new
+    #   @hello_world.send(:session_key, true)
+    #     => :widget_hello_world_default_permanent
+    #
+    #   @hello_world = HelloWorldWidget.new(:identifier => 'id')
+    #   @hello_world.send(:session_key, true)
+    #     => :widget_hello_world_id_permanent
+    def session_key(permanent = false)
+      id = self.respond_to?(:identifier) ? identifier : 'default'
+      context = permanent ? 'permanent' : 'page'
+      "widget_#{self.class.widget_name}_#{id}_#{context}".to_sym
     end
   end
 end
