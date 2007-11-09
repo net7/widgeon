@@ -167,6 +167,16 @@ module Widgeon
       self.send("#{name}=", value) if(value) #set
     end
     
+    # Load the configuration file.
+    #
+    # If a <b>YAML</b> file is present into the widget folder, it will be
+    # loaded, and each key will be available as widget instance variable.
+    #
+    # <b>Convention:</b> the file should have the same name of the widget.
+    #
+    # Example:
+    #
+    #   HelloWorldWidget => hello_world.yml
     def load_configuration
       path_to_configuration = File.join(Widget.widgets_folder, self.class.widget_name, self.class.widget_name+'.yml')
       return unless File.exists?(path_to_configuration)
@@ -224,8 +234,6 @@ module Widgeon
     end    
   end
 end
-
-class NotImplemented < ArgumentError; end
 
 module ActionView # :nodoc:
   module Helpers # :nodoc:
