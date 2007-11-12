@@ -208,6 +208,14 @@ class WidgeonTest < Test::Unit::TestCase
     assert widget.request.session[key].empty?    
   end
   
+  def test_identification_key
+    widget = Widget.create_widget(:hello_world)
+    assert_equal(:widget_hello_world_default, widget.send(:identification_key))
+    
+    widget = Widget.create_widget(:hello_world, :identifier => 'id')
+    assert_equal(:widget_hello_world_id, widget.send(:identification_key))
+  end
+  
   def test_session_key
     widget = Widget.create_widget(:hello_world)
     assert_equal(:widget_hello_world_default_page, widget.send(:session_key))

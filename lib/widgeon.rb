@@ -13,7 +13,7 @@ module Widgeon
       # helper
       @widget = Widget.create_widget(widget_name, options)
       @widget.before_render_call
-      
+
       render(:partial => "widgets/#{widget_name}/#{widget_name}_widget", :locals => {  widget_name.to_sym => @widget })
     end
     
@@ -85,6 +85,10 @@ module Widgeon
 
       def views_folder #:nodoc:
         'app/views/widgets'
+      end
+      
+      def widget_name_regexp
+        @@widget_name_re
       end
       
       # This method return the widget name.
@@ -203,9 +207,27 @@ module Widgeon
       request.session[session_key(permanent)]
     end
     
-    # Return the session key for the state.
-    # If <tt>:identifier</tt> is defined, will be used into the key,
-    # else it will be used <tt>default</tt>.
+    # Return an identification key useful for the template rendering or the
+    # session identification.
+    #
+    # If <tt>:identifier</tt> is defined, will be used into the key
+    # else it will be used <tt>:default</tt>.
+    #
+    # Example:
+    #
+    #   @hello_world = HelloWorldWidget.new
+    #   @hello_world.send(:session_key)
+    #     => :widget_hello_world_default
+    #
+    #   @hello_world = HelloWorldWidget.new(:identifier => 'id')
+    #   @hello_world.send(:session_key)
+    #     => :widget_hello_world_id
+    def identification_key
+      id = self.respond_to?(:identifier) ? identifier : 'default'
+      "widget_#{self.class.widget_name}_#{id}".to_sym
+    end
+    
+    # Return the session key for the state, using <tt>identification_key</tt>.
     #
     # If <tt>permanent</tt> is <tt>true</tt> the key will be generated for the
     # <b>permanent</b> state, else for the <b>page</b> one.
@@ -228,9 +250,8 @@ module Widgeon
     #   @hello_world.send(:session_key, true)
     #     => :widget_hello_world_id_permanent
     def session_key(permanent = false)
-      id = self.respond_to?(:identifier) ? identifier : 'default'
       context = permanent ? 'permanent' : 'page'
-      "widget_#{self.class.widget_name}_#{id}_#{context}".to_sym
+      "#{identification_key}_#{context}".to_sym
     end    
   end
 end
@@ -244,5 +265,15 @@ module ActionView # :nodoc:
 end
 
 ActionView::Base.class_eval do
+  alias_method :action_view_render_template, :render_template
+  def render_template(template_extension, template, file_path = nil, local_assigns = {})
+    match = Widgeon::Widget.widget_name_regexp.match(file_path)
+    unless match.nil?
+      widget_name = match.to_s.gsub(/_widget\.[\w]*/, '').gsub(/_/, '').to_sym
+      template ||= read_template_file(file_path, template_extension) # Make sure that a lazyily-read template is loaded.
+      template = "<div id=\"#{local_assigns[widget_name].send(:identification_key).to_s}\">"+template+"</div>"
+    end
+    action_view_render_template(template_extension, template, file_path, local_assigns)
+  end
   include ActionView::Helpers::Widgets
 end
