@@ -1,0 +1,2 @@
+module WidgetProxyHelper
+end

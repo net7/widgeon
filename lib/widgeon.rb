@@ -7,14 +7,18 @@ module Widgeon
     #
     #   <%= widget(:sidebar, :title => 'My Shiny Sidebar')%>
     def widget(widget_name, options = {})
-      options.update(:controller => controller, :request => request, :widget_name => widget_name)
-      
-      # Widget is made a class variable, so that it is automtically available to the
-      # helper
+      Widget.default_attributes.each { |att| options.update( att => self.send(att) ) }
+
+      # Widget is made a class variable, so that it is automtically available
+      # to the helper.
       @widget = Widget.create_widget(widget_name, options)
       @widget.before_render_call
 
-      render(:partial => "widgets/#{widget_name}/#{widget_name}_widget", :locals => {  widget_name.to_sym => @widget })
+      # Add the javascript code to the page and render the widget into a div.
+      "#{@widget.send(:initialize_javascripts)}" +
+      "<div id=\"#{@widget.send(:identification_key)}\">" +
+      render(:partial => "widgets/#{widget_name}/#{widget_name}_widget", :locals => {  widget_name.to_sym => @widget })+
+      "</div>"
     end
     
     # Helper to render a partial in the widget folder
@@ -56,7 +60,7 @@ module Widgeon
         # Get the class of the widget and check, just to be sure
         klass = Kernel.const_get("#{widget_name.to_s.camelize}Widget")
         raise(RuntimeError, "Widget class does not exist") unless(klass.is_a?(Class))
-
+        
         # Create the new widget
         klass.new(options)
       end
@@ -91,6 +95,11 @@ module Widgeon
         @@widget_name_re
       end
       
+      # Those attributes are always available into the widget as variables.
+      def default_attributes
+        [:request, :controller]
+      end
+      
       # This method return the widget name.
       #
       # Example:
@@ -112,16 +121,17 @@ module Widgeon
     def initialize(options = {})
       load_configuration
       options.each { |att, value| create_instance_accessor(att, value) }
-      create_permanent_state
+      page_state[:attributes].each { |k,v| create_instance_accessor(k,v)} unless page_state.nil?
+      create_permanent_state if permanent_state.nil?
     end
     
     # This is called by the helper before the widget is rendered. It will
     # automatically create a new <b>on page state</b> and call the 
     # <tt>before_render</tt> method, if one is defined in the class.
-    def before_render_call
-      create_page_state
+    def before_render_call      
       before_render if(respond_to?(:before_render))
       create_accessors
+      create_page_state
     end
     
     # returns the folder where this widget resides
@@ -147,7 +157,7 @@ module Widgeon
     protected
     # Create accessors for all instance variables that don't have one alredady
     def create_accessors
-      instance_variables.each do |var|
+     instance_variables.each do |var|
         var.sub!('@', '') # Remmove the @ char from the variable name
         create_instance_accessor(var)
       end
@@ -200,11 +210,30 @@ module Widgeon
     end
     
     def create_state(permanent = false) #:nodoc:
-      request.session[session_key(permanent)] = {}
+      key = session_key(permanent)
+      request.session[key] = {}
+
+      # add instance variables to the page state
+      unless permanent
+        request.session[key][:attributes] = {}
+        instance_variables.each do |var|
+          var = var.gsub(/@/, '').to_sym
+          next if self.class.default_attributes.include?(var)
+          request.session[key][:attributes][var] = self.send(var)
+        end
+      end
     end
     
     def widget_state(permanent = false) #:nodoc:
       request.session[session_key(permanent)]
+    end
+    
+    def initialize_javascripts
+      # TODO eliminate this duplicated code.
+      id = self.respond_to?(:identifier) ? identifier : 'default'
+      "<script type=\"text/javascript\" charset=\"utf-8\">"+
+        "widget = new Widget('#{id}', '#{self.class.widget_name}');"+
+      "</script>"
     end
     
     # Return an identification key useful for the template rendering or the
@@ -265,15 +294,5 @@ module ActionView # :nodoc:
 end
 
 ActionView::Base.class_eval do
-  alias_method :action_view_render_template, :render_template
-  def render_template(template_extension, template, file_path = nil, local_assigns = {})
-    match = Widgeon::Widget.widget_name_regexp.match(file_path)
-    unless match.nil?
-      widget_name = match.to_s.gsub(/_widget\.[\w]*/, '').gsub(/_/, '').to_sym
-      template ||= read_template_file(file_path, template_extension) # Make sure that a lazyily-read template is loaded.
-      template = "<div id=\"#{local_assigns[widget_name].send(:identification_key).to_s}\">"+template+"</div>"
-    end
-    action_view_render_template(template_extension, template, file_path, local_assigns)
-  end
   include ActionView::Helpers::Widgets
 end

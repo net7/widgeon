@@ -3,10 +3,11 @@ require 'rake/testtask'
 require 'rake/rdoctask'
 require 'fileutils'
 
-rails_root	 = File.expand_path(RAILS_ROOT)
-plugin_root	 = File.join(rails_root, 'vendor', 'plugins', 'widgeon')
-widgets_root = File.join(rails_root, 'app', 'views', 'widgets')
-view_root    = File.join(rails_root, 'app', 'views', 'widgets')
+rails_root	   = File.expand_path(RAILS_ROOT)
+plugin_root	   = File.join(rails_root, 'vendor', 'plugins', 'widgeon')
+view_root      = File.join(rails_root, 'app', 'views')
+widgets_root   = File.join(view_root, 'widgets')
+templates_root = File.join(plugin_root, 'templates')
 
 desc "Default task for widgeon plugin (test task)."
 task :widgeon => :default
@@ -27,7 +28,10 @@ namespace :widgeon do
 
   desc "Install the widgeon plugin."
   task :install do
-    [widgets_root, view_root].each { |dir| FileUtils.mkdir(dir) unless File.directory?(dir) }
+    FileUtils.mkdir(widgets_root) unless File.directory?(widgets_root)
+    File.cp File.join(templates_root, 'widget_proxy_controller.rb'), File.join(rails_root, 'controllers')
+    File.cp File.join(templates_root, 'widget_proxy_helper.rb'), File.join(rails_root, 'helpers')
+    File.cp File.join(templates_root, 'widgeon.js'), File.join(rails_root, 'public', 'javascripts')
   end
   
   desc 'Generate documentation for the widgeon plugin.'
