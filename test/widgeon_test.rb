@@ -28,6 +28,7 @@ class WidgeonTest < Test::Unit::TestCase
     @widgets_folder       = File.join(rails_root, 'widgets')
     @test_widgets_folder  = File.join(rails_root, 'vendor', 'plugins', 'widgeon', 'test', 'fixtures')
     @hello_world_file     = File.join(@test_widgets_folder, 'hello_world_widget.rb')
+    @path_to_self         = File.join('app', 'views', 'widgets', 'hello_world')
     @loaded_widgets       = [:hello_world, :configured].to_set
     @configuration        = {'host' => 'localhost', 'port' => 3000, 'path' => 'widgets'}
     @default_attributes   = [:request, :controller]
@@ -59,6 +60,10 @@ class WidgeonTest < Test::Unit::TestCase
   
   def test_widgets_folder
     assert_equal(@test_widgets_folder, Widget.widgets_folder)
+  end
+  
+  def test_path_to_self
+    assert_equal(@path_to_self, HelloWorldWidget.new.path_to_self)
   end
   
   def test_loaded_widget

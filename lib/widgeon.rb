@@ -150,6 +150,11 @@ module Widgeon
       create_permanent_state
     end
     
+    # Returns the path for the widget.
+    def path_to_self
+      File.join(self.class.widgets_folder, self.class.widget_name.to_s)
+    end
+    
     protected
     # Create accessors for all instance variables that don't have one alredady
     def create_accessors
