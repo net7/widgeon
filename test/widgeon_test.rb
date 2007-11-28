@@ -26,7 +26,6 @@ class WidgeonTest < Test::Unit::TestCase
   def setup
     rails_root            = File.expand_path(RAILS_ROOT)
     @widgets_folder       = File.join(rails_root, 'widgets')
-    @views_folder         = File.join('app', 'views', 'widgets')
     @test_widgets_folder  = File.join(rails_root, 'vendor', 'plugins', 'widgeon', 'test', 'fixtures')
     @hello_world_file     = File.join(@test_widgets_folder, 'hello_world_widget.rb')
     @loaded_widgets       = [:hello_world, :configured].to_set
@@ -60,10 +59,6 @@ class WidgeonTest < Test::Unit::TestCase
   
   def test_widgets_folder
     assert_equal(@test_widgets_folder, Widget.widgets_folder)
-  end
-
-  def test_views_folder
-    assert_equal(@views_folder, Widget.views_folder)
   end
   
   def test_loaded_widget

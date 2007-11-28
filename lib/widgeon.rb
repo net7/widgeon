@@ -84,11 +84,7 @@ module Widgeon
       end
       
       def widgets_folder #:nodoc:
-        @widgets_folder ||= 'app/views/widgets'
-      end
-
-      def views_folder #:nodoc:
-        'app/views/widgets'
+        @widgets_folder ||= File.join('app', 'views', 'widgets')
       end
       
       def widget_name_regexp
