@@ -32,7 +32,6 @@ module Widgeon
   class Widget
     attr_accessor :request, :controller
     class << self
-      
       # Regexp for extracting the widget name for a file
       # Explanation: At the end of the string, match the thing that looks like
       # <characters without dir separator>_widget.<characters><- end of string
@@ -48,6 +47,7 @@ module Widgeon
         unless(Dependencies.mechanism == :require && widget_defined?(widget_name))
           raise(ArgumentError, "No widget folder set") if widgets_folder.nil?
           load "#{widgets_folder}/#{widget_name}/#{widget_name}_widget.rb"
+          "#{widget_name}_widget".classify.constantize.load_configuration
           loaded_widgets << widget_name.to_sym
         end
         raise(ArgumentError, "Unable to load widget: #{widget_name}") unless(widget_defined?(widget_name))
@@ -74,6 +74,25 @@ module Widgeon
         @loaded_widgets ||= Set.new
       end
       
+      # Load the configuration file and cache it.
+      #
+      # If a <b>YAML</b> file is present into the widget folder, it will be
+      # loaded, and each key will be available as widget instance variable.
+      #
+      # <b>Convention:</b> the file should have the same name of the widget.
+      #
+      # Example:
+      #
+      #   HelloWorldWidget => hello_world.yml
+      def load_configuration
+        path_to_configuration = File.join(Widget.widgets_folder, widget_name, widget_name+'.yml')
+        return unless File.exists?(path_to_configuration)
+        YAML::load_file(path_to_configuration).to_hash.each do |att, value|
+          default_attributes << att.to_sym
+          attr_accessor_with_default att.to_sym, value
+        end
+      end
+      
       # Set the widgets folder.
       #
       # Example:
@@ -93,7 +112,7 @@ module Widgeon
       
       # Those attributes are always available into the widget as variables.
       def default_attributes
-        [:request, :controller]
+        @@default_attributes ||= [ :request, :controller ]
       end
       
       # This method return the widget name.
@@ -115,7 +134,6 @@ module Widgeon
     # If the param <tt>:identifier</tt> was passed, it will be used as part of
     # the <b>page state</b> and <b>permanent state</b> identifier.
     def initialize(options = {})
-      load_configuration
       options.each { |att, value| create_instance_accessor(att, value) }
       page_state[:attributes].each { |k,v| create_instance_accessor(k,v)} unless page_state.nil?
       create_permanent_state if permanent_state.nil?
@@ -180,24 +198,6 @@ module Widgeon
         end
       end
       self.send("#{name}=", value) if(value) #set
-    end
-    
-    # Load the configuration file.
-    #
-    # If a <b>YAML</b> file is present into the widget folder, it will be
-    # loaded, and each key will be available as widget instance variable.
-    #
-    # <b>Convention:</b> the file should have the same name of the widget.
-    #
-    # Example:
-    #
-    #   HelloWorldWidget => hello_world.yml
-    def load_configuration
-      path_to_configuration = File.join(Widget.widgets_folder, self.class.widget_name, self.class.widget_name+'.yml')
-      return unless File.exists?(path_to_configuration)
-      YAML::load_file(path_to_configuration).to_hash.each do |att, value|
-        create_instance_accessor(att, value)
-      end
     end
     
     # Create a new <b>page</b> state.

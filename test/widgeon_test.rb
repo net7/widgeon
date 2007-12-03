@@ -106,13 +106,14 @@ class WidgeonTest < Test::Unit::TestCase
   def test_initalize
     widget = HelloWorldWidget.new(:name => 'hello world')
     assert_equal('hello world', widget.name)
-    
+
     Widget.load_widget('configured')
     widget = ConfiguredWidget.new
     assert_equal(23, widget.simple_value)
     assert_equal(@configuration, widget.endpoint)
     key = widget.send(:session_key, true)
     assert widget.request.session[key].empty?
+    [:simple_value, :endpoint].each { |att| assert widget.class.default_attributes.include?(att) }
   end
   
   def test_before_render_call
