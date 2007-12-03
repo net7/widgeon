@@ -23,7 +23,7 @@ module Widgeon
     
     # Helper to render a partial in the widget folder
     def widget_partial(partial, options = {})
-      options[:partial] = File.join(@widget.self_folder, partial)
+      options[:partial] = File.join(@widget.path_to_self, partial)
       options[:locals] = { :widget => @widget }
       render(options)
     end
@@ -146,11 +146,6 @@ module Widgeon
       before_render if(respond_to?(:before_render))
       create_accessors
       create_page_state
-    end
-    
-    # returns the folder where this widget resides
-    def self_folder
-      File.join('widgets', widget_name.to_s)
     end
     
     # Return the <b>page state</b>.
