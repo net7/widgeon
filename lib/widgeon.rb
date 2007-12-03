@@ -135,7 +135,7 @@ module Widgeon
     # the <b>page state</b> and <b>permanent state</b> identifier.
     def initialize(options = {})
       options.each { |att, value| create_instance_accessor(att, value) }
-      page_state[:attributes].each { |k,v| create_instance_accessor(k,v)} unless page_state.nil?
+      create_instance_accessors_from_state
       create_permanent_state if permanent_state.nil?
     end
     
@@ -227,6 +227,12 @@ module Widgeon
     
     def widget_state(permanent = false) #:nodoc:
       request.session[session_key(permanent)]
+    end
+    
+    def create_instance_accessors_from_state #:nodoc:
+      unless page_state.nil? or page_state[:attributes].nil?
+        page_state[:attributes].each { |k,v| create_instance_accessor(k,v)}
+      end
     end
     
     def initialize_javascripts
