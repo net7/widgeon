@@ -7,7 +7,7 @@ module Widgeon
     #
     #   <%= widget(:sidebar, :title => 'My Shiny Sidebar')%>
     def widget(widget_name, options = {})
-      Widget.default_attributes.each { |att| options.update( att => self.send(att) ) }
+      Widget.http_attributes.each { |att| options.update( att => self.send(att) ) }
 
       # Widget is made a class variable, so that it is automtically available
       # to the helper.
@@ -112,7 +112,17 @@ module Widgeon
       
       # Those attributes are always available into the widget as variables.
       def default_attributes
-        @@default_attributes ||= [ :request, :controller ]
+        @@default_attributes ||= []
+      end
+      
+      # Those attributes are catched from the widget helper and instantiated.
+      def http_attributes
+        @@http_attributes ||= [ :request, :controller ]
+      end
+      
+      # Those attributes are the cached into the class itself.
+      def cached_attributes
+        default_attributes + http_attributes
       end
       
       # This method return the widget name.
@@ -214,7 +224,7 @@ module Widgeon
         request.session[key][:attributes] = {}
         instance_variables.each do |var|
           var = var.gsub(/@/, '').to_sym
-          next if self.class.default_attributes.include?(var)
+          next if self.class.cached_attributes.include?(var)
           request.session[key][:attributes][var] = self.send(var)
         end
       end

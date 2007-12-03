@@ -31,7 +31,9 @@ class WidgeonTest < Test::Unit::TestCase
     @path_to_self         = File.join('app', 'views', 'widgets', 'hello_world')
     @loaded_widgets       = [:hello_world, :configured].to_set
     @configuration        = {'host' => 'localhost', 'port' => 3000, 'path' => 'widgets'}
-    @default_attributes   = [:request, :controller]
+    @http_attributes      = [:request, :controller]
+    @default_attributes   = [:simple_value, :endpoint]
+    @cached_attributes    = @default_attributes + @http_attributes
     Widget.widgets_folder = @test_widgets_folder
     
     @response = ActionController::TestResponse.new
@@ -84,12 +86,12 @@ class WidgeonTest < Test::Unit::TestCase
   def test_widget_defined
     Widget.load_widget('hello_world')
     
-    assert Widget.widget_defined?(:hello_world)
+    assert  Widget.widget_defined?(:hello_world)
     assert !Widget.widget_defined?(:unexistent)
   end
   
-  def test_default_attributes
-    assert_equal(@default_attributes, Widget.default_attributes)
+  def test_http_attributes
+    assert_equal(@http_attributes, Widget.http_attributes)
   end
   
   def test_widget_name
@@ -113,7 +115,8 @@ class WidgeonTest < Test::Unit::TestCase
     assert_equal(@configuration, widget.endpoint)
     key = widget.send(:session_key, true)
     assert widget.request.session[key].empty?
-    [:simple_value, :endpoint].each { |att| assert widget.class.default_attributes.include?(att) }
+    assert_equal(@default_attributes, widget.class.default_attributes)
+    assert_equal(@cached_attributes,  widget.class.cached_attributes)
   end
   
   def test_before_render_call
