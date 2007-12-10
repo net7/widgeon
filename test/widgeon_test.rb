@@ -31,6 +31,7 @@ class WidgeonTest < Test::Unit::TestCase
     @path_to_self         = File.join('app', 'views', 'widgets', 'hello_world')
     @loaded_widgets       = [:hello_world, :configured].to_set
     @configuration        = {'host' => 'localhost', 'port' => 3000, 'path' => 'widgets'}
+    @nil_attributes       = {:attributes=>"null"}
     @http_attributes      = [:request, :controller]
     @default_attributes   = [:simple_value, :endpoint]
     @cached_attributes    = @default_attributes + @http_attributes
@@ -114,7 +115,7 @@ class WidgeonTest < Test::Unit::TestCase
     assert_equal(23, widget.simple_value)
     assert_equal(@configuration, widget.endpoint)
     key = widget.send(:session_key, true)
-    assert widget.request.session[key].empty?
+    assert_equal(@nil_attributes, widget.request.session[key])
     assert_equal(@default_attributes, widget.class.default_attributes)
     assert_equal(@cached_attributes,  widget.class.cached_attributes)
   end
@@ -126,7 +127,7 @@ class WidgeonTest < Test::Unit::TestCase
     assert_equal('new option', widget.new_option)
     key = widget.send(:session_key)
     assert_kind_of(Hash, widget.request.session[key])
-    assert_kind_of(Hash, widget.request.session[key][:attributes])
+    assert_kind_of(String, widget.request.session[key][:attributes])
     assert !widget.request.session[key][:attributes].empty?
   end
   
@@ -144,7 +145,7 @@ class WidgeonTest < Test::Unit::TestCase
   
   def test_permanent_state
     widget = Widget.create_widget(:hello_world, :name => 'hello world')
-    assert widget.permanent_state.empty?
+    assert_equal(@nil_attributes, widget.permanent_state)
     widget.before_render_call
     widget.permanent_state[:permanent_stuff] = 'some bla bla'
     assert_equal('some bla bla', widget.permanent_state[:permanent_stuff])
@@ -155,7 +156,7 @@ class WidgeonTest < Test::Unit::TestCase
     
     # explicit flush
     widget.clean_permanent_state
-    assert widget.permanent_state.empty?
+    assert_equal(@nil_attributes, widget.permanent_state)
   end
   
   def test_create_page_state
@@ -164,8 +165,8 @@ class WidgeonTest < Test::Unit::TestCase
     key = widget.send(:session_key)
     widget.send(:create_page_state)
     assert_kind_of(Hash, widget.request.session[key])
-    assert_kind_of(Hash, widget.request.session[key][:attributes])
-    assert widget.request.session[key][:attributes].empty?
+    assert_kind_of(String, widget.request.session[key][:attributes])
+    assert_equal("{}", widget.request.session[key][:attributes])
     
     # without :identifier with session
     widget.request.session[key] = { :plugin => 'widgeon' }
@@ -178,15 +179,15 @@ class WidgeonTest < Test::Unit::TestCase
     key = widget.send(:session_key)
     widget.send(:create_page_state)
     assert_kind_of(Hash, widget.request.session[key])
-    assert_kind_of(Hash, widget.request.session[key][:attributes])
-    assert_equal(1, widget.request.session[key][:attributes].size)
+    assert_kind_of(String, widget.request.session[key][:attributes])
+    assert_equal(1, ActiveSupport::JSON.decode(widget.request.session[key][:attributes]).size)
     
     # with :identifier and with session
     widget.request.session[key] = { :plugin => 'widgeon' }
     assert_not_nil(widget.request.session[key])
     widget.send(:create_page_state)
     assert_kind_of(Hash, widget.request.session[key])
-    assert_equal(1, widget.request.session[key].size)
+    assert_equal(1, ActiveSupport::JSON.decode(widget.request.session[key][:attributes]).size)
   end
   
   def test_create_permanent_state
@@ -195,28 +196,28 @@ class WidgeonTest < Test::Unit::TestCase
     key = widget.send(:session_key, true)
     widget.send(:create_permanent_state)
     assert_kind_of(Hash, widget.request.session[key])
-    assert widget.request.session[key].empty?
+    assert_equal(@nil_attributes, widget.request.session[key])
     
     # without :identifier with session
     widget.request.session[key] = { :plugin => 'widgeon' }
     assert_not_nil(widget.request.session[key])
     widget.send(:create_permanent_state)
     assert_kind_of(Hash, widget.request.session[key])
-    assert widget.request.session[key].empty?
+    assert_equal(@nil_attributes, widget.request.session[key])
     
     # with :identifier and clean session
     widget = Widget.create_widget(:hello_world, :identifier => 'id')
     key = widget.send(:session_key, true)
     widget.send(:create_permanent_state)
     assert_kind_of(Hash, widget.request.session[key])
-    assert widget.request.session[key].empty?
+    assert_equal(@nil_attributes, widget.request.session[key])
     
     # with :identifier and with session
     widget.request.session[key] = { :plugin => 'widgeon' }
     assert_not_nil(widget.request.session[key])
     widget.send(:create_permanent_state)
     assert_kind_of(Hash, widget.request.session[key])
-    assert widget.request.session[key].empty?    
+    assert_equal(@nil_attributes, widget.request.session[key])
   end
   
   def test_identification_key

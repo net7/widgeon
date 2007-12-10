@@ -228,6 +228,10 @@ module Widgeon
           request.session[key][:attributes][var] = self.send(var)
         end
       end
+      # Make sure :attributes is stored as json, cause Marshal doesn't support
+      # serializations of bindings, procedure or method objects, instances of
+      # class IO, or singleton objects.
+      request.session[key][:attributes] = request.session[key][:attributes].to_json
     end
     
     def widget_state(permanent = false) #:nodoc:
@@ -236,7 +240,7 @@ module Widgeon
     
     def create_instance_accessors_from_state #:nodoc:
       unless page_state.nil? or page_state[:attributes].nil?
-        page_state[:attributes].each { |k,v| create_instance_accessor(k,v)}
+        ActiveSupport::JSON.decode(page_state[:attributes]).each { |k,v| create_instance_accessor(k,v)}
       end
     end
     
