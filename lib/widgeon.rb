@@ -151,11 +151,14 @@ module Widgeon
     
     # This is called by the helper before the widget is rendered. It will
     # automatically create a new <b>on page state</b> and call the 
-    # <tt>before_render</tt> method, if one is defined in the class.
-    def before_render_call      
-      before_render if(respond_to?(:before_render))
+    # <tt>before_render</tt> method.
+    def before_render_call   
+      before_render
       create_accessors
       create_page_state
+    end
+    
+    def before_render #:nodoc:
     end
     
     # Return the <b>page state</b>.
