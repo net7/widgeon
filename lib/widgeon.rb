@@ -23,9 +23,8 @@ module Widgeon
     
     # Helper to render a partial in the widget folder
     def widget_partial(partial, options = {})
-      options[:partial] = File.join(@widget.path_to_self, partial)
-      options[:locals] = { :widget => @widget }
-      render(options)
+      partial = "widgets/#{@widget.class.widget_name}/#{partial}"
+      render :partial => partial, :collection => options[:collection], :locals => { :widget => @widget }
     end
   end
   
