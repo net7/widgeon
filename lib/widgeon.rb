@@ -242,9 +242,12 @@ module Widgeon
     end
     
     def create_instance_accessors_from_state #:nodoc:
-      unless page_state.nil? or page_state[:attributes].nil?
-        ActiveSupport::JSON.decode(page_state[:attributes]).each { |k,v| create_instance_accessor(k,v)}
+      return if page_state.nil? or page_state[:attributes].nil?
+      page_state[:attributes] = case page_state[:attributes]
+        when String: ActiveSupport::JSON.decode(page_state[:attributes])
+        else         page_state[:attributes]
       end
+      page_state[:attributes].each { |k,v| create_instance_accessor(k,v) }
     end
     
     def initialize_javascripts
