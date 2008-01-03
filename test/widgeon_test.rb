@@ -2,13 +2,20 @@ require 'test/test_helper'
 require 'test/unit'
 require 'vendor/plugins/widgeon/test/test_helper'
 
+Widgeon::Helpers.class_eval do
+  def render(options = nil, &block)
+    ActionView::Base.new(File.join(File.dirname(__FILE__), 'fixtures')).render(options, block)
+  end
+end
+
 class WidgeonTest < Test::Unit::TestCase
   include Widgeon
-
+  include ActionView::Helpers::Widgets
+  
   def setup
     @path_to_widgets  = "app/views/widgets"
-    @path_to_fixtures = File.join(File.dirname(__FILE__), 'fixtures')
-    @path_to_helper   = File.join(@path_to_fixtures, 'hello_world', 'hello_world_widget.html.erb')
+    @path_to_fixtures = File.join(File.dirname(__FILE__), 'fixtures', 'widgets')
+    @path_to_helper   = File.join('widgets', 'hello_world', 'hello_world_widget.html.erb')
     
     Widget.send(:class_variable_set, :@@path_to_widgets, @path_to_fixtures)
   end
@@ -22,6 +29,10 @@ class WidgeonTest < Test::Unit::TestCase
     assert defined? ActionView::Helpers::Widgets
   end
   
+  def test_widget
+    assert_dom_equal %(<p>Hello World!</p>), widget(:hello_world)
+  end
+    
   def test_exists
     assert !Widget.exists?(:unexistent)
     assert  Widget.exists?(:hello_world)

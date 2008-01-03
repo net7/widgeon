@@ -42,10 +42,7 @@ module Widgeon
     
     # Return the path to the helper that will be rendered.
     def path_to_helper
-      @path_to_helper ||= File.join(self.class.path_to_widgets, widget_name, "#{widget_name}_widget.html.erb")
-    end
-    
-    def render
+      @path_to_helper ||= File.join("widgets", widget_name, "#{widget_name}_widget.html.erb")
     end
     
     private
