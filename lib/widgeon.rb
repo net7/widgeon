@@ -8,7 +8,12 @@ module Widgeon
     #   <%= widget(:sidebar, :title => 'My Shiny Sidebar') %>
     def widget(widget_name, options = {})
       @widget = Widget.load(widget_name.to_s).new(options)
-      render :partial => @widget.path_to_helper, :locals => {  widget_name.to_sym => @widget }
+      render_widget
+    end
+    
+    private
+    def render_widget
+      "<div id=\"#{@widget.widget_name}\">#{render :partial => @widget.path_to_helper, :locals => { @widget.widget_name.to_sym => @widget }}</div>"
     end
   end
 
@@ -45,7 +50,6 @@ module Widgeon
       @path_to_helper ||= File.join("widgets", widget_name, "#{widget_name}_widget.html.erb")
     end
     
-    private
     # Return the widget name, based on the class name.
     #
     # Example:

@@ -30,7 +30,7 @@ class WidgeonTest < Test::Unit::TestCase
   end
   
   def test_widget
-    assert_dom_equal %(<p>Hello World!</p>), widget(:hello_world)
+    assert_dom_equal %(<div id="hello_world"><p>Hello World!</p></div>), widget(:hello_world)
   end
     
   def test_exists
@@ -51,7 +51,7 @@ class WidgeonTest < Test::Unit::TestCase
   end
   
   def test_widget_name
-    assert_equal 'hello_world', Widget.load('hello_world').new.send(:widget_name)
+    assert_equal 'hello_world', Widget.load('hello_world').new.widget_name
   end
   
   def test_path_to_helper
