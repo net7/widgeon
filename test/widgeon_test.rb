@@ -6,37 +6,49 @@ class WidgeonTest < Test::Unit::TestCase
   include Widgeon
 
   def setup
-    @path_to_widgets = "app/views/widgets"
-  end
-
-  def teardown
-    Widget.send(:class_variable_set, :@@path_to_widgets, @path_to_widgets)
+    @path_to_widgets  = "app/views/widgets"
+    @path_to_fixtures = File.join(File.dirname(__FILE__), 'fixtures')
+    @path_to_helper   = File.join(@path_to_fixtures, 'hello_world', 'hello_world_widget.html.erb')
+    
+    Widget.send(:class_variable_set, :@@path_to_widgets, @path_to_fixtures)
   end
 
   def test_widget_paths
+    set_original_path
     assert_equal(@path_to_widgets, Widget.path_to_widgets)
   end
-    
+  
+  def test_widgets_module_should_be_defined_in_actionview
+    assert defined? ActionView::Helpers::Widgets
+  end
+  
   def test_exists
-    set_fixtures_folder
     assert !Widget.exists?(:unexistent)
     assert  Widget.exists?(:hello_world)
   end
   
-  def test_load
-    set_fixtures_folder
+  def test_load_should_fail_when_try_to_load_an_unexistent_widget
     assert_raise(ArgumentError) { Widget.load("unexistent") }
-
-    Widget.load("hello_world")
-    assert defined? HelloWorldWidget
+  end
+  
+  def test_should_load_widget
+    assert defined? Widget.load("hello_world")
   end
   
   def test_initialize
     assert_equal 'Luca', Widget.new(:name => 'Luca').name
   end
   
+  def test_widget_name
+    assert_equal 'hello_world', Widget.load('hello_world').new.send(:widget_name)
+  end
+  
+  def test_path_to_helper
+    assert_equal @path_to_helper, Widget.load('hello_world').new.path_to_helper
+  end
+  
   private
-  def set_fixtures_folder
-    Widget.send(:class_variable_set, :@@path_to_widgets, File.join(File.dirname(__FILE__), 'fixtures'))
+  def set_original_path
+    Widget.send(:class_variable_set, :@@path_to_widgets, @path_to_widgets)
   end
 end

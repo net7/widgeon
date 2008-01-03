@@ -5,9 +5,10 @@ module Widgeon
     #
     # Example:
     #
-    #   <%= widget(:sidebar, :title => 'My Shiny Sidebar')%>
+    #   <%= widget(:sidebar, :title => 'My Shiny Sidebar') %>
     def widget(widget_name, options = {})
-      load(widget_name.to_s)
+      @widget = Widget.load(widget_name.to_s).new(options)
+      render :partial => @widget.path_to_helper, :locals => {  widget_name.to_sym => @widget }
     end
   end
 
@@ -24,6 +25,7 @@ module Widgeon
       def load(widget_name)
         raise(ArgumentError, "Unable to load widget: " + widget_name) unless exists?(widget_name)
         require_or_load File.join(path_to_widgets, widget_name, widget_name+'_widget')
+        (widget_name+"Widget").classify.constantize
       end
       
       # Check if a widget exists in the path defined in path_to_widgets.
@@ -37,5 +39,34 @@ module Widgeon
     def initialize(options = {})
       options.symbolize_keys.each { |k,v| self.class.class_eval { attr_accessor_with_default k, v } }
     end
+    
+    # Return the path to the helper that will be rendered.
+    def path_to_helper
+      @path_to_helper ||= File.join(self.class.path_to_widgets, widget_name, "#{widget_name}_widget.html.erb")
+    end
+    
+    def render
+    end
+    
+    private
+    # Return the widget name, based on the class name.
+    #
+    # Example:
+    #   ShinySidebarWidget #=> shiny_sidebar
+    def widget_name
+      @widget_name ||= self.class.name.underscore.gsub(/_widget/, '')
+    end
   end
+end
+
+module ActionView # :nodoc:
+  module Helpers # :nodoc:
+    module Widgets # :nodoc:
+      include Widgeon::Helpers
+    end
+  end
+end
+
+ActionView::Base.class_eval do
+  include ActionView::Helpers::Widgets
 end
