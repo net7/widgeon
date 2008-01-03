@@ -31,7 +31,7 @@ namespace :widgeon do
     FileUtils.mkdir(widgets_root) unless File.directory?(widgets_root)
     File.cp File.join(templates_root, 'widget_proxy_controller.rb'), File.join(rails_root, 'controllers')
     File.cp File.join(templates_root, 'widget_proxy_helper.rb'), File.join(rails_root, 'helpers')
-    File.cp File.join(templates_root, 'widgeon.js'), File.join(rails_root, 'public', 'javascripts')
+    File.cp File.join(templates_root, 'widget.js'), File.join(rails_root, 'public', 'javascripts')
   end
   
   desc 'Generate documentation for the widgeon plugin.'
