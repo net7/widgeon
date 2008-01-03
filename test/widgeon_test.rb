@@ -31,6 +31,10 @@ class WidgeonTest < Test::Unit::TestCase
     assert defined? HelloWorldWidget
   end
   
+  def test_initialize
+    assert_equal 'Luca', Widget.new(:name => 'Luca').name
+  end
+  
   private
   def set_fixtures_folder
     Widget.send(:class_variable_set, :@@path_to_widgets, File.join(File.dirname(__FILE__), 'fixtures'))

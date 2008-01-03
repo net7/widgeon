@@ -1,5 +1,16 @@
 # Widgeon
 module Widgeon
+  module Helpers
+    # Instantiate and render a widget.
+    #
+    # Example:
+    #
+    #   <%= widget(:sidebar, :title => 'My Shiny Sidebar')%>
+    def widget(widget_name, options = {})
+      load(widget_name.to_s)
+    end
+  end
+
   class Widget
     class << self
       def path_to_widgets
@@ -19,6 +30,12 @@ module Widgeon
       def exists?(widget_name)
         File.exists?(path_to_widgets+'/'+widget_name.to_s)
       end
+    end
+    
+    # Create a new instance of the widget.
+    # Each value passed in <tt>options</tt> will be available as attribute.
+    def initialize(options = {})
+      options.symbolize_keys.each { |k,v| self.class.class_eval { attr_accessor_with_default k, v } }
     end
   end
 end
