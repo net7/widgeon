@@ -42,7 +42,7 @@ module Widgeon
     # Create a new instance of the widget.
     # Each value passed in <tt>options</tt> will be available as attribute.
     def initialize(options = {})
-      options.symbolize_keys.each { |k,v| self.class.class_eval { attr_accessor_with_default k, v } }
+      options.symbolize_keys.each { |k,v| self.class.send(:attr_accessor, k); self.send("#{k}=", v) }
     end
     
     # Return the path to the helper that will be rendered.
