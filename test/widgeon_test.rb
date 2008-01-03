@@ -54,6 +54,14 @@ class WidgeonTest < Test::Unit::TestCase
     assert_equal 'hello_world', Widget.load('hello_world').new.widget_name
   end
   
+  def test_id_should_return_widget_name_if_not_explicitly_defined
+    assert_equal 'hello_world', Widget.load('hello_world').new.id
+  end
+  
+  def test_id
+    assert_equal 'greetings', Widget.load('hello_world').new(:id => 'greetings').id
+  end
+  
   def test_path_to_helper
     assert_equal @path_to_helper, Widget.load('hello_world').new.path_to_helper
   end
