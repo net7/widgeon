@@ -28,15 +28,26 @@ module Widgeon
         @@callbacks ||= [ :before_render ]
       end
       
-      # Attempts to load the widget with the given name. The behaviour depends
-      # on Rails::Configuration.cache_classes: If that is set to false, the
-      # file will always be reloaded. If true, the widget class will be
-      # loaded only once.
+      def loaded_widgets
+        @@loaded_widgets ||= {}
+      end
+      
+      # Attempts to load the widget with the given name.
+      # The behaviour depends on:
+      #   config.cache_classes = true or false
+      #
+      # It'd defined in <tt>environment.rb</tt> or in the specific environment
+      # configuration file.
+      #
+      # If that is set to false, the file will always be reloaded.
+      # If true, the widget class will be loaded only once.
       def load(widget_name)
         raise(ArgumentError, "Unable to load widget: " + widget_name) unless exists?(widget_name)
+        return loaded_widgets[widget_name] unless loaded_widgets[widget_name].nil? && Dependencies.mechanism == :require
         require_or_load File.join(path_to_widgets, widget_name, widget_name+'_widget')
         klass = (widget_name+"Widget").classify.constantize
         klass.load_configuration
+        loaded_widgets[widget_name] = klass
         klass
       end
       

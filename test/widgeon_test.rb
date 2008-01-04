@@ -19,6 +19,7 @@ class WidgeonTest < Test::Unit::TestCase
     @path_to_configuration = File.join(@path_to_fixtures, 'hello_world', 'hello_world.yml')
     
     @callbacks = [ :before_render ]
+    @widgets   = %w( configured hello_world )
     
     Widget.send(:class_variable_set, :@@path_to_widgets, @path_to_fixtures)
   end
@@ -30,6 +31,10 @@ class WidgeonTest < Test::Unit::TestCase
   
   def test_callbacks
     assert_equal @callbacks, Widget.callbacks
+  end
+  
+  def test_loaded_widgets
+    assert_equal @widgets, Widget.loaded_widgets.keys
   end
   
   def test_widgets_module_should_be_defined_in_actionview
@@ -52,13 +57,13 @@ class WidgeonTest < Test::Unit::TestCase
   def test_should_load_widget
     assert defined? hello_world
   end
-  
-  def test_configuration_loading_should_be_skipped_for_not_existent_file
+    
+  def test_configuration_loading_should_be_skipped_for_not_existing_file
     assert_equal [], hello_world.instance_variables
   end
   
   def test_configuration_should_be_loaded_if_file_is_present
-    assert_equal 23, Widget.load('configured').new.number
+    assert_equal 23, configured.new.number
   end
   
   def test_initialize
@@ -103,5 +108,9 @@ class WidgeonTest < Test::Unit::TestCase
   
   def hello_world(params = {})
     @hello_world = Widget.load('hello_world').new(params)
+  end
+  
+  def configured
+    Widget.load('configured')
   end
 end
