@@ -43,7 +43,7 @@ module Widgeon
       # If true, the widget class will be loaded only once.
       def load(widget_name)
         raise(ArgumentError, "Unable to load widget: " + widget_name) unless exists?(widget_name)
-        return loaded_widgets[widget_name] unless loaded_widgets[widget_name].nil? && Dependencies.mechanism == :require
+        return loaded_widgets[widget_name] if !loaded_widgets[widget_name].nil? && Dependencies.mechanism == :require
         require_or_load File.join(path_to_widgets, widget_name, widget_name+'_widget')
         klass = (widget_name+"Widget").classify.constantize
         klass.load_configuration
