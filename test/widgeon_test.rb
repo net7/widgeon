@@ -16,7 +16,8 @@ class WidgeonTest < Test::Unit::TestCase
     @path_to_widgets       = "app/views/widgets"
     @path_to_fixtures      = File.join(File.dirname(__FILE__), 'fixtures', 'widgets')
     @path_to_helper        = File.join('widgets', 'hello_world', 'hello_world_widget.html.erb')
-    @path_to_configuration = File.join(@path_to_fixtures, 'hello_world', 'hello_world.yml')
+    @path_to_self          = File.join(@path_to_fixtures, 'hello_world')
+    @path_to_configuration = File.join(@path_to_self, 'hello_world.yml')
     
     @callbacks = [ :before_render ]
     @widgets   = %w( configured hello_world )
@@ -80,6 +81,10 @@ class WidgeonTest < Test::Unit::TestCase
   
   def test_id
     assert_equal 'greetings', hello_world(:id => 'greetings').id
+  end
+  
+  def test_path_to_self
+    assert_equal @path_to_self, hello_world.class.path_to_self
   end
   
   def test_path_to_helper

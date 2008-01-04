@@ -64,6 +64,12 @@ module Widgeon
         end
       end
       
+      # Return the root of the current widget.
+      # Convention: HelloWorldWidget => app/views/widgets/hello_world
+      def path_to_self
+        @path_to_self ||= File.join(path_to_widgets, widget_name)
+      end
+      
       # Return the path to the helper that will be rendered.
       # Convention: HelloWorldWidget => widgets/hello_world/hello_world_widget.html.erb
       def path_to_helper
@@ -73,7 +79,7 @@ module Widgeon
       # Return the path to the configuration.
       # Convention: HelloWorldWidget => widgets/hello_world/hello_world.yml
       def path_to_configuration
-        @path_to_configuration ||= File.join(path_to_widgets, widget_name, "#{widget_name}.yml")
+        @path_to_configuration ||= File.join(path_to_self, "#{widget_name}.yml")
       end
       
       # Return the widget name, based on the class name.
