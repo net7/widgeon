@@ -11,6 +11,13 @@ module Widgeon
       render_widget
     end
     
+    # TODO merge with #widget
+    # Helper to render a partial in the widget folder
+    def widget_partial(partial, options = {})
+      partial = "widgets/#{@widget.class.widget_name}/#{partial}"
+      render :partial => partial, :collection => options[:collection], :locals => { :widget => @widget }
+    end
+    
     private
     def render_widget
       @widget.render
