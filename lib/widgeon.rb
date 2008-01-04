@@ -13,7 +13,8 @@ module Widgeon
     
     private
     def render_widget
-      "<div id=\"#{@widget.id}\">#{render :partial => @widget.path_to_helper, :locals => { @widget.widget_name.to_sym => @widget }}</div>"
+      @widget.render
+      "<div id=\"#{@widget.id}\">#{render :partial => @widget.path_to_helper, :locals => { (@widget.widget_name+"_widget").to_sym => @widget }}</div>"
     end
   end
 
@@ -21,6 +22,10 @@ module Widgeon
     class << self
       def path_to_widgets
         @@path_to_widgets ||= 'app/views/widgets'
+      end
+      
+      def callbacks
+        @@callbacks ||= [ :before_render ]
       end
       
       # Attempts to load the widget with the given name. The behaviour depends
@@ -63,10 +68,32 @@ module Widgeon
       @widget_name ||= self.class.name.underscore.gsub(/_widget/, '')
     end
     
+    def render #:nodoc:
+      call_callbacks_chain
+      create_instance_accessors_from_attributes
+    end
+    
+    def before_render #:nodoc:
+    end
+    
     private
-    def create_instance_accessor(name, value = nil)
+    def create_instance_accessor(name, value = nil) #:nodoc:
       (class << self; self; end).class_eval { attr_accessor name }
       self.send("#{name}=", value)
+    end
+    
+    # Create attribute accessors, starting from instance attributes.
+    def create_instance_accessors_from_attributes
+      self.instance_variables.each do |attribute|
+        attribute = attribute.gsub('@', '')
+        next if self.respond_to? attribute.to_sym
+        create_instance_accessor attribute, instance_variable_get("@#{attribute}".to_sym)
+      end
+    end
+    
+    # Call all the callbacks.
+    def call_callbacks_chain
+      self.class.callbacks.each { |method| self.send method }
     end
   end
 end
