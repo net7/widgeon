@@ -14,7 +14,7 @@ module Widgeon
     private
     def render_widget
       @widget.render
-      "<div id=\"#{@widget.id}\">#{render :partial => @widget.path_to_helper, :locals => { (@widget.widget_name+"_widget").to_sym => @widget }}</div>"
+      "<div id=\"#{@widget.id}\">#{render :partial => @widget.class.path_to_helper, :locals => { (@widget.class.widget_name+"_widget").to_sym => @widget }}</div>"
     end
   end
 
@@ -35,12 +35,42 @@ module Widgeon
       def load(widget_name)
         raise(ArgumentError, "Unable to load widget: " + widget_name) unless exists?(widget_name)
         require_or_load File.join(path_to_widgets, widget_name, widget_name+'_widget')
-        (widget_name+"Widget").classify.constantize
+        klass = (widget_name+"Widget").classify.constantize
+        klass.load_configuration
+        klass
       end
       
       # Check if a widget exists in the path defined in path_to_widgets.
       def exists?(widget_name)
         File.exists?(path_to_widgets+'/'+widget_name.to_s)
+      end
+      
+      # Load the configuration file.
+      def load_configuration
+        return unless File.exists? path_to_configuration
+        YAML::load_file(path_to_configuration).to_hash.each do |att, value|
+          attr_accessor_with_default att.to_sym, value
+        end
+      end
+      
+      # Return the path to the helper that will be rendered.
+      # Convention: HelloWorldWidget => widgets/hello_world/hello_world_widget.html.erb
+      def path_to_helper
+        @path_to_helper ||= File.join("widgets", widget_name, "#{widget_name}_widget.html.erb")
+      end
+      
+      # Return the path to the configuration.
+      # Convention: HelloWorldWidget => widgets/hello_world/hello_world.yml
+      def path_to_configuration
+        @path_to_configuration ||= File.join(path_to_widgets, widget_name, "#{widget_name}.yml")
+      end
+      
+      # Return the widget name, based on the class name.
+      #
+      # Example:
+      #   ShinySidebarWidget #=> shiny_sidebar
+      def widget_name
+        @widget_name ||= self.name.underscore.gsub(/_widget/, '')
       end
     end
     
@@ -49,25 +79,12 @@ module Widgeon
     def initialize(options = {})
       options.each { |k,v| create_instance_accessor k, v }
     end
-    
-    # Return the path to the helper that will be rendered.
-    def path_to_helper
-      @path_to_helper ||= File.join("widgets", widget_name, "#{widget_name}_widget.html.erb")
-    end
-    
+            
     # Return the id, if explicitly specified, or the widget_name.
     def id
-      @id ||= widget_name
+      @id ||= self.class.widget_name
     end
-    
-    # Return the widget name, based on the class name.
-    #
-    # Example:
-    #   ShinySidebarWidget #=> shiny_sidebar
-    def widget_name
-      @widget_name ||= self.class.name.underscore.gsub(/_widget/, '')
-    end
-    
+        
     def render #:nodoc:
       call_callbacks_chain
       create_instance_accessors_from_attributes
