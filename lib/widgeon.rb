@@ -7,6 +7,7 @@ module Widgeon
     #
     #   <%= widget(:sidebar, :title => 'My Shiny Sidebar') %>
     def widget(widget_name, options = {})
+      options = options.merge(:controller => controller)
       @widget = Widget.load(widget_name.to_s).new(options)
       render_widget
     end
