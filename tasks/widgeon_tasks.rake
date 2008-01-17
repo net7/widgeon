@@ -1,7 +1,7 @@
 require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
-require 'fileutils'
+require 'ftools'
 
 rails_root	   = File.expand_path(RAILS_ROOT)
 plugin_root	   = File.join(rails_root, 'vendor', 'plugins', 'widgeon')
@@ -29,8 +29,8 @@ namespace :widgeon do
   desc "Install the widgeon plugin."
   task :install do
     FileUtils.mkdir(widgets_root) unless File.directory?(widgets_root)
-    File.cp File.join(templates_root, 'widget_proxy_controller.rb'), File.join(rails_root, 'controllers')
-    File.cp File.join(templates_root, 'widget_proxy_helper.rb'), File.join(rails_root, 'helpers')
+    File.cp File.join(templates_root, 'widget_proxy_controller.rb'), File.join(rails_root, 'app', 'controllers')
+    File.cp File.join(templates_root, 'widget_proxy_helper.rb'), File.join(rails_root, 'app', 'helpers')
     File.cp File.join(templates_root, 'widget.js'), File.join(rails_root, 'public', 'javascripts')
   end
   
