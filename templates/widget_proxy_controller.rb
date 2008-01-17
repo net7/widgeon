@@ -7,4 +7,9 @@ class WidgetProxyController < ApplicationController
       render :text => widget.send(params[:handler].to_sym, params), :status => 200
     end
   end
+  
+  def stylesheet
+    headers['Content-Type'] = 'application/css'
+    render :file => "#{Widgeon::Widget.path_to_widgets}/#{params[:widget]}/#{params[:widget]}.css"
+  end
 end

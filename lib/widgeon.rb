@@ -20,6 +20,18 @@ module Widgeon
       render(options)
     end
     
+    # It render the stylesheet for the current widget.
+    #
+    # <b>Convention:</b> The stylesheet must be in the same folder of the widget,
+    # and it should be the same name.
+    #
+    # <b>Example:</b>
+    #
+    #   HelloWorld #=> hello_world.css
+    def stylesheet
+      content_for(:stylesheet, %(<link href="/widget_proxy/stylesheet?widget=#{@widget.class.widget_name}" media="screen" rel="stylesheet" type="application/css" />))
+    end
+    
     private
     def render_widget
       @widget.render
