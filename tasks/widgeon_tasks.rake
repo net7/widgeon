@@ -41,5 +41,5 @@ namespace :widgeon do
   	rdoc.options << '--line-numbers' << '--inline-source'
   	rdoc.rdoc_files.include("#{plugin_root}/README")
   	rdoc.rdoc_files.include("#{plugin_root}/lib/**/*.rb")
-  end
+  end  
 end
