@@ -5,6 +5,8 @@ module Widgeon
   # widget objects.
   class Widget
     class << self
+      
+      # The path under which the widgets are located
       def path_to_widgets
         @@path_to_widgets ||= 'app/views/widgets'
       end
@@ -13,6 +15,7 @@ module Widgeon
         @@callbacks ||= [ :before_render ]
       end
       
+      # Caches already loaded widget classes.
       def loaded_widgets
         @@loaded_widgets ||= {}
       end
@@ -31,7 +34,6 @@ module Widgeon
         return loaded_widgets[widget_name] if !loaded_widgets[widget_name].nil? && Dependencies.mechanism == :require
         require_or_load File.join(path_to_widgets, widget_name, widget_name+'_widget')
         klass = (widget_name+"Widget").classify.constantize
-        klass.load_configuration
         loaded_widgets[widget_name] = klass
         klass
       end
@@ -39,14 +41,6 @@ module Widgeon
       # Check if a widget exists in the path defined in path_to_widgets.
       def exists?(widget_name)
         File.exists?(path_to_widgets+'/'+widget_name.to_s)
-      end
-      
-      # Load the configuration file.
-      def load_configuration
-        return unless File.exists? path_to_configuration
-        YAML::load_file(path_to_configuration).to_hash.each do |att, value|
-          attr_accessor_with_default att.to_sym, value
-        end
       end
       
       # Return the root of the current widget.
@@ -76,10 +70,13 @@ module Widgeon
       end
     end
     
+    # END OF CLASS METHODS
+    
     # Create a new instance of the widget.
     # Each value passed in <tt>options</tt> will be available as attribute.
     def initialize(options = {})
       options.each { |k,v| create_instance_accessor k, v }
+      load_configuration # Load the configuration file
     end
             
     # Return the id, if explicitly specified, or the widget_name.
@@ -114,5 +111,17 @@ module Widgeon
     def call_callbacks_chain
       self.class.callbacks.each { |method| self.send method }
     end
+    
+    # Load the configuration file.
+    def load_configuration
+      return unless File.exists? self.class.path_to_configuration
+      unless(@config_hash && Dependencies.mechanism != :require)
+        @config_hash = YAML::load_file(self.class.path_to_configuration).to_hash
+      end
+      @config_hash.each do |att, value|
+        create_instance_accessor(att.to_sym, value)
+      end
+    end
+    
   end
 end
