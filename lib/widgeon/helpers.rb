@@ -27,8 +27,12 @@ module Widgeon
     # <b>Example:</b>
     #
     #   HelloWorld #=> hello_world.css
+    #
+    # <b>Usage:</b>
+    #
+    #  <%= stylesheet %>
     def stylesheet
-      content_for(:stylesheet, %(<link href="/widget_proxy/stylesheet?widget=#{@widget.class.widget_name}" media="screen" rel="stylesheet" type="application/css" />))
+      content_for(:stylesheet, %(<link href="/widgeon/stylesheet?widget=#{@widget.class.widget_name}" media="screen" rel="stylesheet" type="application/css" />))
     end
     
     private
