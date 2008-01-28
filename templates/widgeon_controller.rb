@@ -1,4 +1,4 @@
-class WidgetProxyController < ApplicationController
+class WidgeonController < ApplicationController
   def index
     if request.xhr?
       raise(ArgumentError, "Widget not found") unless Widgeon::Widget.loaded_widgets.include?(params[:widget_name].to_sym) 

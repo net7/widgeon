@@ -2,13 +2,13 @@ require 'test/test_helper'
 require 'test/unit'
 require 'vendor/plugins/widgeon/test/test_helper'
 
-class WidgeonController < ApplicationController
+class WidgeonTestController < ApplicationController
   def rescue_action(e) raise e end;
 end
-module WigeonHelper; end
+module WigeonTestHelper; end
 
 Widgeon::Helpers.class_eval do
-  attr_accessor_with_default :controller, WidgeonController.new
+  attr_accessor_with_default :controller, WidgeonTestController.new
   def render(options = nil, old_local_assigns = {}, &block)
     ActionView::Base.new(File.join(File.dirname(__FILE__), 'fixtures'), options[:locals]).render(options, &block)
   end
@@ -54,7 +54,7 @@ class WidgeonTest < Test::Unit::TestCase
     
   def test_should_have_a_controller_as_instance_variable
     widget(:hello_world)
-    assert_kind_of(WidgeonController, @widget.controller)
+    assert_kind_of(WidgeonTestController, @widget.controller)
   end
     
   def test_exists
