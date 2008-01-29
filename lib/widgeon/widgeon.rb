@@ -75,7 +75,8 @@ module Widgeon
     # Create a new instance of the widget.
     # Each value passed in <tt>options</tt> will be available as attribute.
     def initialize(options = {})
-      options.each { |k,v| create_instance_accessor k, v }
+      create_instance_accessor(:call_options, options)
+      options.each { |option, value| create_instance_accessor option, value }
       load_configuration # Load the configuration file
     end
             
@@ -93,7 +94,12 @@ module Widgeon
     end
     
     private
+    
+    # Create an instance variable and an accessor for it with the given name and
+    # value. This will raise an error if the name is already defined.
     def create_instance_accessor(name, value = nil) #:nodoc:
+      name = name.to_sym
+      raise(ArgumentError, "An option tried to overwrite #{name}") if(respond_to?(name) || respond_to?("#{name}="))
       (class << self; self; end).class_eval { attr_accessor name }
       self.send("#{name}=", value)
     end
@@ -102,8 +108,9 @@ module Widgeon
     def create_instance_accessors_from_attributes
       self.instance_variables.each do |attribute|
         attribute = attribute.gsub('@', '')
-        next if self.respond_to? attribute.to_sym
-        create_instance_accessor attribute, instance_variable_get("@#{attribute}".to_sym)
+        unless((respond_to?(attribute) || respond_to?("#{attribute}=")))
+          create_instance_accessor attribute, instance_variable_get("@#{attribute}".to_sym)
+        end
       end
     end
     

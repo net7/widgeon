@@ -4,6 +4,7 @@ $: << File.dirname(File.expand_path(__FILE__))
 # Require stuff
 require 'widgeon/helpers'
 require 'widgeon/widgeon'
+require 'widgeon/widgeon_encoding'
 
 # Install the helpers
 module ActionView # :nodoc:
