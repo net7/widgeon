@@ -29,8 +29,8 @@ namespace :widgeon do
   desc "Install the widgeon plugin."
   task :install do
     FileUtils.mkdir(widgets_root) unless File.directory?(widgets_root)
-    File.cp File.join(templates_root, 'widget_proxy_controller.rb'), File.join(rails_root, 'app', 'controllers')
-    File.cp File.join(templates_root, 'widget_proxy_helper.rb'), File.join(rails_root, 'app', 'helpers')
+    File.cp File.join(templates_root, 'widgeon_controller.rb'), File.join(rails_root, 'app', 'controllers')
+    File.cp File.join(templates_root, 'widgeon_helper.rb'), File.join(rails_root, 'app', 'helpers')
     File.cp File.join(templates_root, 'widget.js'), File.join(rails_root, 'public', 'javascripts')
   end
   
