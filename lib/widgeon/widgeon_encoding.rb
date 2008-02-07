@@ -1,6 +1,5 @@
 require 'zlib'
 require 'base64'
-require 'json'
 
 module WidgeonEncoding
   
