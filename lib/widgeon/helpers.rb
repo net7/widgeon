@@ -45,35 +45,35 @@ module Widgeon
         callback_options # Use just the callback options
       end
       
+      # Add the URI to the widget
+      options[:widget_class] = @widget.class.widget_name
+      
       "<div class='widget_backlink'>" +
-        form_remote_tag(:url => { :controller => 'widgeon', :action => 'callback' }) +
-        hidden_field_tag('widget_class', @widget.class.widget_name ) +
-        hidden_field_tag('options', WidgeonEncoding.encode_object(options)) +
+        form_remote_tag(:url => { :controller => "widgeon", :action => 'callback'} ) +
+        hidden_field_tag('widget_callback_options', WidgeonEncoding.encode_options(options)) +
         submit_tag(text) +
         "</form></div>"
-    end
-    
-    # It render the stylesheet for the current widget.
-    #
-    # <b>Convention:</b> The stylesheet must be in the same folder of the widget,
-    # and it should be the same name.
-    #
-    # <b>Example:</b>
-    #
-    #   HelloWorld #=> hello_world.css
-    #
-    # <b>Usage:</b>
-    #
-    #  <%= stylesheet %>
-    def stylesheet
-      content_for(:stylesheet, %(<link href="/widgeon/stylesheet?widget=#{@widget.class.widget_name}" media="screen" rel="stylesheet" type="application/css" />))
     end
     
     private
     
     def render_widget
       @widget.render
-      "<div id=\"#{@widget.id}\">#{render :partial => @widget.class.path_to_helper, :locals => { (@widget.class.widget_name+"_widget").to_sym => @widget }}</div>"
+      widget_content = render(:partial => @widget.class.path_to_helper, 
+                              :locals => { (@widget.class.widget_name+"_widget").to_sym => @widget })
+      "#{inline_style}\n<div id=\"#{@widget.id}\">#{widget_content}</div>"
     end
+    
+    # Helper that returns the "inline style" for the widget. This will return
+    # a <style> tag to be included in the HTML if the widget has a stylesheet
+    # *and* if the <tt>inline_styles</tt> property of the Widget engine is true
+    def inline_style
+      style = ""
+      if(@widget.class.inline_styles && (w_style = @widget.class.widget_style))
+        style = "<style type='text/css'><!--\n#{w_style}\n--></style>"
+      end
+      style
+    end
+    
   end
 end

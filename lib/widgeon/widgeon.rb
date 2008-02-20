@@ -20,6 +20,14 @@ module Widgeon
         @@loaded_widgets ||= {}
       end
       
+      # Indicates if the widget engine should use inline css styles. These
+      # can be disabled if the widget syles are moved to a "normal" stylesheet
+      # for performance
+      def inline_styles
+        @@inline_styles = true if(!defined?(@@inline_styles)) # ||= WILL NOT WORK
+        @@inline_styles 
+      end
+      
       # Attempts to load the widget with the given name.
       # The behaviour depends on:
       #   config.cache_classes = true or false
@@ -40,7 +48,7 @@ module Widgeon
       
       # Check if a widget exists in the path defined in path_to_widgets.
       def exists?(widget_name)
-        File.exists?(path_to_widgets+'/'+widget_name.to_s)
+        File.exists?(File.join(path_to_widgets, widget_name.to_s))
       end
       
       # Return the root of the current widget.
@@ -68,6 +76,20 @@ module Widgeon
       def widget_name
         @widget_name ||= self.name.underscore.gsub(/_widget/, '')
       end
+      
+      # Reads the stylesheet file for the widget (<widget_name>.css in the
+      # widget's directory and returns it's contents as a string.
+      #
+      # If no style exists, this returns nil
+      def widget_style
+        style_path = File.join(path_to_self, "#{widget_name}.css")
+        if(File.exists?(style_path))
+          File.open(style_path) { |file| file.read }
+        else
+          nil
+        end
+      end
+      
     end
     
     # END OF CLASS METHODS
