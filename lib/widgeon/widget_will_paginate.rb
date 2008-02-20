@@ -1,6 +1,9 @@
 # This includes the will_paginate functionality for widgets. If you want to use
 # this, you *must* force the widget load ordering to load the will_paginate
 # plugin before the widgeon plugin!
+#
+# The widget pagination can be called inside the widget using the 
+# #widget_will_paginate method.
 module WidgetWillPaginate
   
   # Create a hacked version of the "Renderer" of will_paginate to work with
@@ -26,10 +29,19 @@ module WidgetWillPaginate
   # Module for the actual helper methods
   module Helpers
     
-    # This is a modified version of the original will_paginate method. You may 
-    # pass additional backlink_options which will be passed to the backlink
-    # that is created
-    def widget_will_paginate(collection = nil, backlink_options = {}, options = {})
+    # This is a modified version of the original will_paginate method that can
+    # be used inside a widget. This will paginate the given collection und
+    # create a widget backlink instead of the normal page links.
+    # 
+    # By default, the widget backlink will contain the "normal" pagination 
+    # options (most importantly "page"). 
+    # 
+    # If the widget that is called back needs additional options, these can
+    # be passed using the backlink_options hash.
+    #  
+    # The options hash is equivalent to the one used in the standard pagination
+    # helper.
+    def widget_will_paginate(collection, backlink_options = {}, options = {})
       options, collection = collection, nil if collection.is_a? Hash
       unless collection or !controller
         collection_name = "@#{controller.controller_name}"
