@@ -7,8 +7,11 @@ class WidgeonTestController < ApplicationController
 end
 module WigeonTestHelper; end
 
+# Injects a controller into the helpers that will work with the tests and modify
+# the render method to use the new path
 Widgeon::Helpers.class_eval do
   attr_accessor_with_default :controller, WidgeonTestController.new
+  attr_accessor_with_default :request, ActionController::TestRequest.new
   def render(options = nil, old_local_assigns = {}, &block)
     ActionView::Base.new(File.join(File.dirname(__FILE__), 'fixtures'), options[:locals]).render(options, &block)
   end
@@ -49,7 +52,7 @@ class WidgeonTest < Test::Unit::TestCase
   end
   
   def test_widget
-    assert_dom_equal %(<div id="hello_world"><p>Hello World!</p></div>), widget(:hello_world)
+    assert_dom_equal %(<div id="default"><p>Hello World!</p></div>), widget(:hello_world)
   end
     
   def test_should_have_a_controller_as_instance_variable
@@ -71,15 +74,15 @@ class WidgeonTest < Test::Unit::TestCase
   end
     
   def test_configuration_loading_should_be_skipped_for_not_existing_file
-    assert_equal [], hello_world.instance_variables
+    assert_equal ["@call_options", "@id", "@request", "@controller"], hello_world.instance_variables
   end
   
   def test_configuration_should_be_loaded_if_file_is_present
-    assert_equal 23, configured.new.number
+    assert_equal 23, configured.new(controller, request).number
   end
   
   def test_initialize
-    assert_equal 'Luca', Widget.new(:name => 'Luca').name
+    assert_equal 'Luca', Widget.new(controller, request, :name => 'Luca').name
   end
   
   def test_widget_name
@@ -87,7 +90,7 @@ class WidgeonTest < Test::Unit::TestCase
   end
   
   def test_id_should_return_widget_name_if_not_explicitly_defined
-    assert_equal 'hello_world', hello_world.id
+    assert_equal 'default', hello_world.id
   end
   
   def test_id
@@ -117,13 +120,20 @@ class WidgeonTest < Test::Unit::TestCase
     assert_equal "Hello World!", @hello_world.instance_variable_get(:@greet)
   end
   
+  def test_widget_session
+    widget(:hello_world)
+    assert_nil(@widget.session_get)
+    @widget.session_set("test")
+    assert_equal("test", @widget.session_get)
+  end
+  
   private
   def set_original_path
     Widget.send(:class_variable_set, :@@path_to_widgets, @path_to_widgets)
   end
   
   def hello_world(params = {})
-    @hello_world = Widget.load('hello_world').new(params)
+    @hello_world = Widget.load('hello_world').new(controller, request, params)
   end
   
   def configured

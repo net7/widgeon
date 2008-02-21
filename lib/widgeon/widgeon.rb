@@ -96,15 +96,20 @@ module Widgeon
     
     # Create a new instance of the widget.
     # Each value passed in <tt>options</tt> will be available as attribute.
-    def initialize(options = {})
+    def initialize(controller, request, options = {})
+      raise(ArgumentError, "Controller invalid") unless(controller.is_a?(ActionController::Base))
+      raise(ArgumentError, "Request invalid (#{request.class})") unless(request.is_a?(ActionController::AbstractRequest))
+      @id = options.delete(:id) # We must set that manually because we can't overwrite the accessor method
+      @controller = controller
+      @request = request
       create_instance_accessor(:call_options, options)
       options.each { |option, value| create_instance_accessor option, value }
       load_configuration # Load the configuration file
     end
             
-    # Return the id, if explicitly specified, or the widget_name.
+    # Return the id. The default id is "default"
     def id
-      @id ||= self.class.widget_name
+      @id ||= "default"
     end
         
     def render #:nodoc:
@@ -116,6 +121,13 @@ module Widgeon
     end
     
     private
+    
+    # Get the widget's session store, which is a hash stored in the current
+    # session. The contents will be private for the widget class/id combination
+    # of this widget
+    def widget_session
+      @request.session["#{self.class.widget_name}-#{id}"] ||= {}
+    end
     
     # Create an instance variable and an accessor for it with the given name and
     # value. This will raise an error if the name is already defined.

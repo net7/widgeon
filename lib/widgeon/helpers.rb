@@ -6,8 +6,7 @@ module Widgeon
     #
     #   <%= widget(:sidebar, :title => 'My Shiny Sidebar') %>
     def widget(widget_name, options = {})
-      options = options.merge(:controller => controller)
-      @widget = Widget.load(widget_name.to_s).new(options)
+      @widget = Widget.load(widget_name.to_s).new(controller, request, options)
       render_widget
     end
     
@@ -61,7 +60,7 @@ module Widgeon
       @widget.render
       widget_content = render(:partial => @widget.class.path_to_helper, 
                               :locals => { (@widget.class.widget_name+"_widget").to_sym => @widget })
-      "#{inline_style}\n<div id=\"#{@widget.id}\">#{widget_content}</div>"
+      "#{inline_style}<div id=\"#{@widget.id}\">#{widget_content}</div>"
     end
     
     # Helper that returns the "inline style" for the widget. This will return
@@ -70,7 +69,7 @@ module Widgeon
     def inline_style
       style = ""
       if(@widget.class.inline_styles && (w_style = @widget.class.widget_style))
-        style = "<style type='text/css'><!--\n#{w_style}\n--></style>"
+        style = "<style type='text/css'><!--\n#{w_style}\n--></style>\n"
       end
       style
     end
