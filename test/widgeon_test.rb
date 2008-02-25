@@ -74,7 +74,7 @@ class WidgeonTest < Test::Unit::TestCase
   end
     
   def test_configuration_loading_should_be_skipped_for_not_existing_file
-    assert_equal ["@call_options", "@id", "@request", "@controller"], hello_world.instance_variables
+    assert_equal ["@call_options", "@id", "@request", "@controller"].sort, hello_world.instance_variables.sort
   end
   
   def test_configuration_should_be_loaded_if_file_is_present

@@ -9,7 +9,7 @@ class WidgeonController < ApplicationController
   end
   
   def stylesheet
-    headers['Content-Type'] = 'application/css'
+    headers['Content-Type'] = MIME::CSS
     render :file => "#{Widgeon::Widget.path_to_widgets}/#{params[:widget]}/#{params[:widget]}.css"
   end
 end
