@@ -7,8 +7,11 @@ module WidgeonEncoding
   # session secret) for security
   def self.encode_options(options)
     raise(ArgumentError, "Options must be a Hash") unless(options.is_a?(Hash))
-    enc_options = encode_object(options)
-    digest = create_digest(enc_options)
+    option_dump = Zlib::Deflate.deflate(Marshal.dump(options))
+    # We compute the digest on the binary object (instead of the base64 version
+    # to avoid mismatches due to a reformatted base64 string
+    digest = create_digest(option_dump) # digest on the binary object
+    enc_options = Base64.encode64(option_dump)
     "#{enc_options}-#{digest}"
   end
   
@@ -16,9 +19,10 @@ module WidgeonEncoding
   def self.decode_options(code)
     elements = code.split('-')
     enc_options = elements[0]
+    option_dump = Base64.decode64(enc_options) # Strip the base64 code
     digest = elements[1]
-    raise(ArgumentError, "Secret Hash doesn't match") unless(digest == create_digest(enc_options))
-    options = decode_object(enc_options)
+    raise(ArgumentError, "Secret Hash doesn't match") unless(digest == create_digest(option_dump))
+    options = Marshal.load(Zlib::Inflate.inflate(option_dump))
     raise(ArgumentError, "Options must be a Hash") unless(options.is_a?(Hash))
     options
   end

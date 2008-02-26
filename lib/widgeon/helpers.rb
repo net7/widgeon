@@ -46,6 +46,8 @@ module Widgeon
       
       # Add the URI to the widget
       options[:widget_class] = @widget.class.widget_name
+      options[:widget_id] = @widget.id
+      options[:request_params] = @widget.request.parameters
       
       "<div class='widget_backlink'>" +
         form_remote_tag(:url => { :controller => "widgeon", :action => 'callback'} ) +
@@ -60,7 +62,7 @@ module Widgeon
       @widget.render
       widget_content = render(:partial => @widget.class.path_to_helper, 
                               :locals => { (@widget.class.widget_name+"_widget").to_sym => @widget })
-      "#{inline_style}<div id=\"#{@widget.id}\">#{widget_content}</div>"
+      "#{inline_style}<div id=\"#{@widget.global_id}\">#{widget_content}</div>"
     end
     
     # Helper that returns the "inline style" for the widget. This will return
