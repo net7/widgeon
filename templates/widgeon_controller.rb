@@ -6,10 +6,29 @@ class WidgeonController < ApplicationController
       widget  = Widgeon::Widget.create_widget(params[:widget_name], options)
       render :text => widget.send(params[:handler].to_sym, params), :status => 200
     end
+  end 
+
+  def stylesheet
+    respond_to do |format|
+      format.css { render :file => "#{Widgeon::Widget.path_to_widgets}/#{params[:widget]}/#{params[:widget]}.css" }
+    end
   end
   
-  def stylesheet
-    headers['Content-Type'] = MIME::CSS
-    render :file => "#{Widgeon::Widget.path_to_widgets}/#{params[:widget]}/#{params[:widget]}.css"
+  # This handles a callback from a widget
+  def callback
+    options = WidgeonEncoding.decode_options(params[:widget_callback_options])
+    
+    if(request.xhr?)
+      # Set the callback flag
+      options[:callback_active] = true
+      @widget = Widgeon::Widget.load(widget_class.to_s).new(self, request, options)
+    else
+      redirect_options = options.delete(:request_params)
+      raise(ArgumentError, "Illegal options") unless(redirect_options.is_a?(Hash))
+      redirect_options[:widgeon_class] = options[:widget_class]
+      redirect_options[:widgeon_id] = options[:widget_id]
+      redirect_options[:widgeon_callback] = WidgeonEncoding.encode_options(options)
+      redirect_to(redirect_options)
+    end
   end
 end
