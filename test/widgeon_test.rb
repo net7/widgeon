@@ -52,7 +52,7 @@ class WidgeonTest < Test::Unit::TestCase
   end
   
   def test_widget
-    assert_dom_equal %(<div id="default"><p>Hello World!</p></div>), widget(:hello_world)
+    assert_dom_equal %(<div id="hello_world-default"><p>Hello World!</p></div>), widget(:hello_world)
   end
     
   def test_should_have_a_controller_as_instance_variable
@@ -74,7 +74,7 @@ class WidgeonTest < Test::Unit::TestCase
   end
     
   def test_configuration_loading_should_be_skipped_for_not_existing_file
-    assert_equal ["@call_options", "@id", "@request", "@controller"].sort, hello_world.instance_variables.sort
+    assert_equal ["@call_options", "@id", "@request", "@created_instance_vars", "@controller"].sort, hello_world.instance_variables.sort
   end
   
   def test_configuration_should_be_loaded_if_file_is_present
