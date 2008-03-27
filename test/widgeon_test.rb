@@ -24,7 +24,7 @@ class WidgeonTest < Test::Unit::TestCase
   def setup
     @path_to_widgets       = "app/views/widgets"
     @path_to_fixtures      = File.join(File.dirname(__FILE__), 'fixtures', 'widgets')
-    @path_to_helper        = File.join('widgets', 'hello_world', 'hello_world_widget.html.erb')
+    @path_to_template        = File.join('widgets', 'hello_world', 'hello_world_widget.html.erb')
     @path_to_self          = File.join(@path_to_fixtures, 'hello_world')
     @path_to_configuration = File.join(@path_to_self, 'hello_world.yml')
     
@@ -101,8 +101,8 @@ class WidgeonTest < Test::Unit::TestCase
     assert_equal @path_to_self, hello_world.class.path_to_self
   end
   
-  def test_path_to_helper
-    assert_equal @path_to_helper, hello_world.class.path_to_helper
+  def test_path_to_template
+    assert_equal @path_to_template, hello_world.class.path_to_template
   end
   
   def test_path_to_configuration

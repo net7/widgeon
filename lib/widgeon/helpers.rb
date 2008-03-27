@@ -60,7 +60,7 @@ module Widgeon
     
     def render_widget
       @widget.render
-      widget_content = render(:partial => @widget.class.path_to_helper, 
+      widget_content = render(:partial => @widget.class.path_to_template, 
                               :locals => { (@widget.class.widget_name+"_widget").to_sym => @widget })
       "#{inline_style}<div id=\"#{@widget.global_id}\">#{widget_content}</div>"
     end

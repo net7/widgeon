@@ -57,10 +57,10 @@ module Widgeon
         @path_to_self ||= File.join(path_to_widgets, widget_name)
       end
       
-      # Return the path to the helper that will be rendered.
+      # Return the path to the template that will be rendered.
       # Convention: HelloWorldWidget => widgets/hello_world/hello_world_widget.html.erb
-      def path_to_helper
-        @path_to_helper ||= File.join("widgets", widget_name, "#{widget_name}_widget.html.erb")
+      def path_to_template
+        @path_to_template ||= File.join("widgets", widget_name, "#{widget_name}_widget.html.erb")
       end
       
       # Return the path to the configuration.
@@ -233,6 +233,13 @@ module Widgeon
       @config_hash.each do |att, value|
         create_instance_accessor(att.to_sym, value)
       end
+    end
+    
+    # Loads the helpers for the wdgets if they exist. Currently,
+    # helpers for a widget will automatically be available in 
+    # *all* views.
+    def load_helpers!
+      return unless File.exists?(self)
     end
     
   end
