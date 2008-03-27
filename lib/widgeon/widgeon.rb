@@ -69,6 +69,12 @@ module Widgeon
         @path_to_configuration ||= File.join(path_to_self, "#{widget_name}.yml")
       end
       
+      # Return the path to the widget's helper module file
+      # Convention HelloWorldWidget => widgets/hellp_world/hello_world_helper.rb
+      def path_to_helpers
+        @path_to_helpers ||= File.join(path_to_self, "#{widget_name}_helper.rb")
+      end
+      
       # Return the widget name, based on the class name.
       #
       # Example:
@@ -99,6 +105,7 @@ module Widgeon
     def initialize(controller, request, options = {})
       raise(ArgumentError, "Controller invalid") unless(controller.is_a?(ActionController::Base))
       raise(ArgumentError, "Request invalid (#{request.class})") unless(request.is_a?(ActionController::AbstractRequest))
+      load_helpers! # Load the helpers
       @id = options.delete(:id) # We must set that manually because we can't overwrite the accessor method
       @controller = controller
       @request = request
@@ -239,7 +246,13 @@ module Widgeon
     # helpers for a widget will automatically be available in 
     # *all* views.
     def load_helpers!
-      return unless File.exists?(self)
+      return unless File.exists?(helper_file = self.class.path_to_helpers)
+      require_or_load helper_file
+      mod = "#{self.class.widget_name.classify}Helper".constantize
+      raise(RuntimeError, "Didn't find correct helper module for #{self.class}") unless(mod.is_a?(Module))
+      ActionView::Base.class_eval do
+        include mod
+      end
     end
     
   end

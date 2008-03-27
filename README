@@ -1,22 +1,18 @@
-Widgeon
-=======
+= Widgeon
 
 Widgeon is a widget system for Ruby on Rails.
 
-Install
-=======
+=== Installation
 
 $ ./script/plugin install http://talia.discovery-project.eu/svn/talia/repository/widgeon/trunk
 
-Uninstall
-=========
+=== Uninstallation
 
 $ ./script/plugin delete widgeon
 
 Notice: this operation will *destroy* all your widgets.
 
-How to use
-==========
+== Using an existing widget
 
 In your view files:
 <%= widget(:widget_name) %>
@@ -24,8 +20,7 @@ In your view files:
 You can also pass params:
 <%= widget(:widget_name, :param_one => 'one', :param_two => 'two') %>
 
-How To develop a widget
-=======================
+== Developing a widget
 
 First create a widget (see related section), the process will create two files:
 and helper and a class.
@@ -61,19 +56,35 @@ Example:
   
   The result will be:
   <h1>Welcome Luca!!</h1>
-  
-Create a widget
-===============
 
-$ ./script/generate widget HelloWorld
+=== Stylesheets
+
+You may include a stylesheet file with the name <tt><widget_name>.css</tt> in
+a widget's directory. By default, the stylesheet will be rendered as
+an inline <style> element in the HTML code. You can disable this
+behaviour by setting <tt>Widgeon::Widget::inline_styles = false</tt>.
+
+If you disable the inline styles, you will have to provide the widget's
+CSS styles by another mechanism.
+
+=== Helpers
+
+You can provide a collection of helpers in a file called <tt><widget_name>_helper.rb</tt>
+in the widget's directory. If you provide that file, it *must* declare
+a module called <tt><WidgetName>Helper</tt>. All methods in that
+module will be available as helper in *all* views - be careful not
+to overwrite existing helpers.
+  
+== Create a widget
+
+  $ ./script/generate widget HelloWorld
 
 This creates <tt>widgets/hello_world_widget.rb</tt> and
 <tt>app/views/widgets/hello_world/_hello_world_widget.rhtml</tt>.
 
-Destroy a widget
-================
+== Destroy a widget
 
-$ ./script/destroy widget HelloWorld
+  $ ./script/destroy widget HelloWorld
 
-This creates <tt>widgets/hello_world_widget.rb</tt> and
+This deletes <tt>widgets/hello_world_widget.rb</tt> and
 <tt>app/views/widgets/hello_world/_hello_world_widget.rhtml</tt>.
