@@ -248,11 +248,20 @@ module Widgeon
     def load_helpers!
       return unless File.exists?(helper_file = self.class.path_to_helpers)
       require_or_load helper_file
+      # TODO: These calls can be avoided when using "require"
       mod = "#{self.class.widget_name.classify}Helper".constantize
       raise(RuntimeError, "Didn't find correct helper module for #{self.class}") unless(mod.is_a?(Module))
       ActionView::Base.class_eval do
         include mod
       end
+    end
+    
+    # Private helper to add a "remote call" to the widget
+    def self.remote_call(name, &block)
+      # Just create the method. We use a "remotecall" suffix, so that the
+      # caller can make sure that a call goes to a remote call method (and
+      # nothing else)
+      define_method("#{name}_remotecall", block)
     end
     
   end

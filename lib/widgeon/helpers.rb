@@ -36,18 +36,7 @@ module Widgeon
     #
     # All options passed to a backlink must be serializable.
     def widget_backlink(text, callback_options)
-      raise(ArgumentError, "Illegal options") unless(callback_options.is_a?(Hash))
-      # Create the options 
-      options = if(callback_options.delete(:default_options))
-        @widget.call_options.merge(callback_options) # Add the default options
-      else
-        callback_options # Use just the callback options
-      end
-      
-      # Add the URI to the widget
-      options[:widget_class] = @widget.class.widget_name
-      options[:widget_id] = @widget.id
-      options[:request_params] = @widget.request.parameters
+      prepare_options(callback_options)
       
       "<div class='widget_backlink'>" +
         form_remote_tag(:url => { :controller => "widgeon", :action => 'callback'} ) +
@@ -56,7 +45,34 @@ module Widgeon
         "</form></div>"
     end
     
+    # This inserts a remote link into the widget. When the link is called, an
+    # instance of the widget will be created and the given <tt>remote_call</tt>
+    # action will be executed on the widget object
+    def widget_remotelink(text, template, options)
+      prepare_options(options)
+      options.delete(:request_params) # We don't really need them here
+      options[:template] = template
+      
+      link_to_remote(text, :url => { :controller => "widgeon", :action => "remote_call", :call_options => WidgeonEncoding.encode_options(options) } )
+    end
+    
     private
+    
+    # Prepare an option hash for the current widget, to be used with AJAX 
+    # callbacks
+    def prepare_options(options)
+      raise(ArgumentError, "Illegal options") unless(options.is_a?(Hash))
+      # Create the options 
+      if(options.delete(:default_options))
+        options.merge(@widget.call_options) # Add the default options
+      end
+      
+      # Add the URI to the widget
+      options[:widget_class] = @widget.class.widget_name
+      options[:widget_id] = @widget.id
+      options[:request_params] = @widget.request.parameters
+      options
+    end
     
     def render_widget
       @widget.render
