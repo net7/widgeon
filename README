@@ -57,6 +57,48 @@ Example:
   The result will be:
   <h1>Welcome Luca!!</h1>
 
+=== Remote calls
+
+See also Widgeon::Helpers
+
+Using the <tt>widget_remotelink</tt> helper, one can make a remote call to the 
+current widget. The call will initialize the widget, but *not* call the
+<tt>before_render</tt> method.
+
+A remote call will then call the handler that has been defined inside the
+widget's class. A handler can be defined like this:
+
+  remote_call :my_handler do |page|
+    # modifying code
+  end
+
+The page object can be used in the same way as in a RJS template.
+
+=== Backlinks to widget
+
+See also the Widgeon::Helpers page
+
+Using the <tt>widget_backlink</tt> helper, you may create a backlink to an exsting widget.
+The widget backlink will call the current widget, passing the given options to
+it. 
+
+It renders the widget in the "normal" way and replaces the widget's <tt><div></tt>
+ element with new HTML; the widget's element is referenced by the widget id. 
+
+The backlink will also work without Javascript; in this case the whole page will
+be re-rendered.
+
+In any case, the <tt>is_callback</tt> propery will be set on the widget. Using
+this property, a widget may discover if it's rendered as a result of a backlink
+(or as part of a page that is the result of a backlink).
+
+=== Widget state
+
+Inside the widget, the <tt>widget_session</tt> will be used. This is a hash
+that will stored in the user's session between widget calls. The hash is
+identified by the widget's id, thus it will be shared between all widgets with
+the same id.
+
 === Stylesheets
 
 You may include a stylesheet file with the name <tt><widget_name>.css</tt> in
