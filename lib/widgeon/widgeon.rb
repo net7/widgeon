@@ -107,8 +107,8 @@ module Widgeon
       raise(ArgumentError, "Request invalid (#{request.class})") unless(request.is_a?(ActionController::AbstractRequest))
       load_helpers! # Load the helpers
       @id = options.delete(:id) # We must set that manually because we can't overwrite the accessor method
-      @controller = controller
-      @request = request
+      create_instance_accessor(:controller, controller);
+      create_instance_accessor(:request, request)
       create_instance_accessor(:call_options, options)
       load_configuration! # Load the configuration options first
       # Now activate the passed options, overwritig config file options

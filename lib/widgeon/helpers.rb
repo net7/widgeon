@@ -14,7 +14,8 @@ module Widgeon
     def widget_partial(partial, options = {})
       widget_obj = @widget 
       options[:partial] = "widgets/#{@widget.class.widget_name}/#{partial}"
-      options[:locals] = { :widget => @widget }
+      options[:locals] ||= {}
+      options[:locals] = options[:locals].merge({ :widget => @widget })
       result = render(options)
       # Restore the widget object. This is a "global variable" in this scope,
       # and if the render() rendered other widgets it will have been overwritten
@@ -48,12 +49,14 @@ module Widgeon
     # This inserts a remote link into the widget. When the link is called, an
     # instance of the widget will be created and the given <tt>remote_call</tt>
     # action will be executed on the widget object
-    def widget_remotelink(text, template, options)
+    def widget_remotelink(text, template, options, html_options = nil)
       prepare_options(options)
       options.delete(:request_params) # We don't really need them here
       options[:template] = template
       
-      link_to_remote(text, :url => { :controller => "widgeon", :action => "remote_call", :call_options => WidgeonEncoding.encode_options(options) } )
+      link_to_remote(text, 
+        { :url => { :controller => "widgeon", :action => "remote_call", :call_options => WidgeonEncoding.encode_options(options) } },
+        html_options )
     end
     
     private
