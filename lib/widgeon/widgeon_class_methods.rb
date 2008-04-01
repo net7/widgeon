@@ -55,8 +55,11 @@ module Widgeon
       
       # Return the path to the template that will be rendered.
       # Convention: HelloWorldWidget => widgets/hello_world/hello_world_widget.html.erb
-      def path_to_template
-        @path_to_template ||= File.join("widgets", widget_name, "#{widget_name}_widget.html.erb")
+      #
+      # If you do not give a template name, this will return the default template
+      def path_to_template(template_name = nil)
+        template_name ||= "#{widget_name}_widget"
+        File.join("widgets", widget_name, template_name)
       end
       
       # Return the path to the configuration.
@@ -96,7 +99,7 @@ module Widgeon
       private
       
       # Private helper to add a "remote call" to the widget
-      def self.remote_call(name, &block)
+      def remote_call(name, &block)
         # Just create the method. We use a "remotecall" suffix, so that the
         # caller can make sure that a call goes to a remote call method (and
         # nothing else)

@@ -34,16 +34,48 @@ module Widgeon
     def global_id
       @global_id ||= "#{self.class.widget_name}-#{id}"
     end
-        
-    def render #:nodoc:
+ 
+    # Renders the widget itself, using the main widget template, enclosing it
+    # in a <div> element and adding inlines styles if necessary.
+    def render(view)
       call_callbacks_chain
       create_instance_accessors_from_attributes
+      content = render_template(view)
+      "#{inline_style}<div id=\"#{global_id}\">#{content}</div>"
+    end
+    
+    # Render a template from the current widget directory
+    def render_template(view, template = nil, options = {})
+      raise(ArgumentError, "Must pass a ActionView, but was a #{view.class}") unless(view.respond_to?(:render))
+      # Save the widget object from the view. This is necessary in case 
+      # a widget calls another widget (we expect to use the "inner" widget
+      # call to use the "inner" widget, but we must restore the object
+      # when we return control to the "outer" call
+      caller_widget = view.w
+      view.current_widget = self # Set the view's current widget to this one
+      options[:object] = self
+      options[:partial] = self.class.path_to_template(template)
+      result = view.render(options)
+      view.current_widget = caller_widget # Restore the original state of the view
+      result
     end
     
     def before_render #:nodoc:
     end
     
     private
+    
+    # Helper that returns the "inline style" for the widget. This will return
+    # a <style> tag to be included in the HTML if the widget has a stylesheet
+    # *and* if the <tt>inline_styles</tt> property of the Widget engine is true
+    def inline_style
+      @style ||= 
+      if(self.class.inline_styles && (w_style = self.class.widget_style))
+        "<style type='text/css'><!--\n#{w_style}\n--></style>\n"
+      else
+        ""
+      end
+    end
     
     # Setup the widget for "static" callback operation (checks if the current
     # page has been loaded with paramters that indicate that this widget 

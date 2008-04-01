@@ -13,7 +13,16 @@ Widgeon::Helpers.class_eval do
   attr_accessor_with_default :controller, WidgeonTestController.new
   attr_accessor_with_default :request, ActionController::TestRequest.new
   def render(options = nil, old_local_assigns = {}, &block)
-    ActionView::Base.new(File.join(File.dirname(__FILE__), 'fixtures'), options[:locals]).render(options, &block)
+    options[:locals] ||= {}
+    view = ActionView::Base.new(File.join(File.dirname(__FILE__), 'fixtures'), options[:locals])
+    # Transfer the widget variable... don't ask
+    # This is because of the weirdness of this test: The widget itself will
+    # think that the test class is the "view" - while the widget template
+    # will use the view object we just created...
+    # TODO: Fix this #%$@#% test
+    view.instance_variable_set(:@widget, @widget)
+    view.render(options, old_local_assigns, &block)
+    
   end
 end
 
@@ -24,7 +33,7 @@ class WidgeonTest < Test::Unit::TestCase
   def setup
     @path_to_widgets       = "app/views/widgets"
     @path_to_fixtures      = File.join(File.dirname(__FILE__), 'fixtures', 'widgets')
-    @path_to_template        = File.join('widgets', 'hello_world', 'hello_world_widget.html.erb')
+    @path_to_template        = File.join('widgets', 'hello_world', 'hello_world_widget')
     @path_to_self          = File.join(@path_to_fixtures, 'hello_world')
     @path_to_configuration = File.join(@path_to_self, 'hello_world.yml')
     @path_to_helpers       = File.join(@path_to_fixtures, 'helping', 'helping_helper.rb')
@@ -57,8 +66,7 @@ class WidgeonTest < Test::Unit::TestCase
   end
     
   def test_should_have_a_controller_as_instance_variable
-    widget(:hello_world)
-    assert_kind_of(WidgeonTestController, @widget.controller)
+    assert_kind_of(WidgeonTestController, hello_world.controller)
   end
     
   def test_exists
@@ -126,10 +134,10 @@ class WidgeonTest < Test::Unit::TestCase
   end
   
   def test_widget_session
-    widget(:hello_world)
-    assert_nil(@widget.session_get)
-    @widget.session_set("test")
-    assert_equal("test", @widget.session_get)
+    hello = hello_world
+    assert_nil(hello.session_get)
+    hello.session_set("test")
+    assert_equal("test", hello.session_get)
   end
   
   def test_helper_include
@@ -153,4 +161,5 @@ class WidgeonTest < Test::Unit::TestCase
   def configured
     Widget.load('configured')
   end
+  
 end

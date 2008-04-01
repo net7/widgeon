@@ -6,22 +6,13 @@ module Widgeon
     #
     #   <%= widget(:sidebar, :title => 'My Shiny Sidebar') %>
     def widget(widget_name, options = {})
-      @widget = Widget.load(widget_name.to_s).new(controller, request, options)
-      render_widget
+      widget = Widget.load(widget_name.to_s).new(controller, request, options)
+      widget.render(self)
     end
     
     # Helper to render a partial in the widget folder
     def widget_partial(partial, options = {})
-      widget_obj = @widget 
-      options[:partial] = "widgets/#{@widget.class.widget_name}/#{partial}"
-      options[:locals] ||= {}
-      options[:locals] = options[:locals].merge({ :widget => @widget })
-      result = render(options)
-      # Restore the widget object. This is a "global variable" in this scope,
-      # and if the render() rendered other widgets it will have been overwritten
-      # TODO: Evil kludge, think about elegant solution
-      @widget = widget_obj
-      result
+      w.render_template(self, partial, options)
     end
     
     # Renders backlink to this widget, using a hidden form field. This will
@@ -59,6 +50,17 @@ module Widgeon
         html_options )
     end
     
+    # This is a special helper which returns the widget object for the 
+    # current view.
+    def w
+      @widget # Return the widget object which has been injected into the view.
+    end
+    
+    # Used to inject the current widget into the view
+    def current_widget=(widget)
+      @widget = widget
+    end
+    
     private
     
     # Prepare an option hash for the current widget, to be used with AJAX 
@@ -75,24 +77,6 @@ module Widgeon
       options[:widget_id] = @widget.id
       options[:request_params] = @widget.request.parameters
       options
-    end
-    
-    def render_widget
-      @widget.render
-      widget_content = render(:partial => @widget.class.path_to_template, 
-                              :locals => { (@widget.class.widget_name+"_widget").to_sym => @widget })
-      "#{inline_style}<div id=\"#{@widget.global_id}\">#{widget_content}</div>"
-    end
-    
-    # Helper that returns the "inline style" for the widget. This will return
-    # a <style> tag to be included in the HTML if the widget has a stylesheet
-    # *and* if the <tt>inline_styles</tt> property of the Widget engine is true
-    def inline_style
-      style = ""
-      if(@widget.class.inline_styles && (w_style = @widget.class.widget_style))
-        style = "<style type='text/css'><!--\n#{w_style}\n--></style>\n"
-      end
-      style
     end
     
   end
