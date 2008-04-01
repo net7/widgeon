@@ -53,7 +53,6 @@ module Widgeon
       # when we return control to the "outer" call
       caller_widget = view.w
       view.current_widget = self # Set the view's current widget to this one
-      options[:object] = self
       options[:partial] = self.class.path_to_template(template)
       result = view.render(options)
       view.current_widget = caller_widget # Restore the original state of the view
