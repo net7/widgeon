@@ -97,7 +97,12 @@ module Widgeon
     def prepare_options!(options)
       raise(ArgumentError, "Illegal options") unless(options.is_a?(Hash))
       raise(ArgumentError, "Must give either the :refresh or the :javascript option") unless(options[:refresh] || options[:javascript])
-      # Create the options 
+      
+      # Update the fallback option
+      unless(options.has_key?(:fallback)) # See if fallback is set by the user
+         options[:fallback] = (options[:refresh] ? :reload : false) # determine the default
+      end
+      
       if(options.delete(:default_options))
         options.merge(w.call_options) # Add the default options
       end
@@ -113,18 +118,12 @@ module Widgeon
     # Creates the fallback link from the option hash, and modifies the option
     # hash accordingly.
     def prepare_fallback_uri!(options)
-      fallback_option = false
-      if(options.has_key?(:fallback)) # See if fallback is set by the user
-        fallback_option = options.delete(:fallback) # use the user's value
-      else
-        fallback_option = options[:refresh] ? :default : false # determine the default
-      end
-      
+      fallback_option = options[:fallback]
       fallback_url = ""
       
       # Now we create the URL that is used for the fallback
       case fallback_option
-      when :default # Crete the linkback to the widget system
+      when :reload # Create the linkback to the widget system
         options[:fallback_enabled] = true
         fallback_url = url_for(:controller => "widgeon", 
           :action => "remote_call", 
