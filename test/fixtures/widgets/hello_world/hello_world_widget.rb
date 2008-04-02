@@ -1,7 +1,7 @@
 class HelloWorldWidget < Widgeon::Widget
   
   # Test before render
-  def before_render
+  def on_init
     @greet = "Hello World!"
   end
   

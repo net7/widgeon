@@ -2,7 +2,13 @@
 module Widgeon
 
   # The base class for all widgets. This encapsulates the basic behaviour of the
-  # widget objects.
+  # widget objects. The widget object's life cycle is as follows:
+  # 
+  # 1. The widget class is loaded/retrieved
+  # 2. The widget object is instanciated with the options passed.
+  # 3. The configuration is loaded and all object accessors are set up
+  # 4. The *on_init* method is called, if it exists. 
+  # 5. Accessors are created for new variables
   class Widget
     
     # Create a new instance of the widget.
@@ -22,8 +28,10 @@ module Widgeon
       # Now check for static callback options. These can overwrite options
       # from the paramter if necessary
       check_for_static_callback!
+      on_init if(self.respond_to?(:on_init))
+      create_instance_accessors_from_attributes
     end
-            
+    
     # Return the id. The default id is "default"
     def id
       @id ||= "default"
@@ -38,8 +46,6 @@ module Widgeon
     # Renders the widget itself, using the main widget template, enclosing it
     # in a <div> element and adding inlines styles if necessary.
     def render(view)
-      call_callbacks_chain
-      create_instance_accessors_from_attributes
       content = render_template(view)
       "#{inline_style}<div id=\"#{global_id}\">#{content}</div>"
     end
@@ -59,7 +65,7 @@ module Widgeon
       result
     end
     
-    def before_render #:nodoc:
+    def on_init #:nodoc:
     end
     
     private
@@ -160,11 +166,6 @@ module Widgeon
           create_instance_accessor attribute, instance_variable_get("@#{attribute}".to_sym)
         end
       end
-    end
-    
-    # Call all the callbacks.
-    def call_callbacks_chain
-      self.class.callbacks.each { |method| self.send method }
     end
     
     # Load the configuration file.

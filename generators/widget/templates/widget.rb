@@ -1,6 +1,6 @@
 class <%= widget_class_name %>Widget < Widgeon::Widget
   
-  # This optional callback runs the code before the widget rendering.
+  # This callback will be run at the last stage of widget initialization
   def before_render
   end
 end

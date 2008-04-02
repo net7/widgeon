@@ -7,10 +7,6 @@ module Widgeon
         @@path_to_widgets ||= 'app/views/widgets'
       end
       
-      def callbacks
-        @@callbacks ||= [ :before_render ]
-      end
-      
       # Caches already loaded widget classes.
       def loaded_widgets
         @@loaded_widgets ||= {}
@@ -33,7 +29,7 @@ module Widgeon
       #
       # If that is set to false, the file will always be reloaded.
       # If true, the widget class will be loaded only once.
-      def load(widget_name)
+      def load_widget(widget_name)
         raise(ArgumentError, "Unable to load widget: " + widget_name) unless exists?(widget_name)
         return loaded_widgets[widget_name] if !loaded_widgets[widget_name].nil? && Dependencies.mechanism == :require
         require_or_load File.join(path_to_widgets, widget_name, widget_name+'_widget')

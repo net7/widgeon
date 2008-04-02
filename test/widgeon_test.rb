@@ -49,10 +49,6 @@ class WidgeonTest < Test::Unit::TestCase
     assert_equal(@path_to_widgets, Widget.path_to_widgets)
   end
   
-  def test_callbacks
-    assert_equal @callbacks, Widget.callbacks
-  end
-  
   def test_loaded_widgets
     assert_equal @widgets, Widget.loaded_widgets.keys
   end
@@ -75,7 +71,7 @@ class WidgeonTest < Test::Unit::TestCase
   end
   
   def test_load_should_fail_when_try_to_load_an_unexistent_widget
-    assert_raise(ArgumentError) { Widget.load("unexistent") }
+    assert_raise(ArgumentError) { Widget.load_widget("unexistent") }
   end
   
   def test_should_load_widget
@@ -83,7 +79,7 @@ class WidgeonTest < Test::Unit::TestCase
   end
     
   def test_configuration_loading_should_be_skipped_for_not_existing_file
-    assert_equal ["@call_options", "@id", "@request", "@created_instance_vars", "@controller"].sort, hello_world.instance_variables.sort
+    assert_equal ["@call_options", "@id", "@request", "@created_instance_vars", "@controller", "@greet"].sort, hello_world.instance_variables.sort
   end
   
   def test_configuration_should_be_loaded_if_file_is_present
@@ -128,8 +124,8 @@ class WidgeonTest < Test::Unit::TestCase
     assert_equal "Ciao Mondo!", @hello_world.italian_greet
   end
   
-  def test_call_callbacks_chain
-    hello_world.send :call_callbacks_chain
+  def test_on_init
+    hello_world.send :on_init
     assert_equal "Hello World!", @hello_world.instance_variable_get(:@greet)
   end
   
@@ -151,15 +147,15 @@ class WidgeonTest < Test::Unit::TestCase
   end
   
   def hello_world(params = {})
-    @hello_world = Widget.load('hello_world').new(controller, request, params)
+    @hello_world = Widget.load_widget('hello_world').new(controller, request, params)
   end
   
   def helping(params = {})
-    @helping = Widget.load('helping').new(controller, request, params)
+    @helping = Widget.load_widget('helping').new(controller, request, params)
   end
   
   def configured
-    Widget.load('configured')
+    Widget.load_widget('configured')
   end
   
 end
