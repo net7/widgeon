@@ -6,13 +6,13 @@ module Widgeon
     #
     #   <%= widget(:sidebar, :title => 'My Shiny Sidebar') %>
     def widget(widget_name, options = {})
-      widget = Widget.load_widget(widget_name.to_s).new(controller, request, options)
-      widget.render(self)
+      widget = Widget.load_widget(widget_name.to_s).new(self, request, options)
+      widget.render
     end
     
     # Helper to render a partial in the widget folder
     def widget_partial(partial, options = {})
-      w.render_template(self, partial, options)
+      w.render_template(partial, options)
     end
     
     

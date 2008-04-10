@@ -38,6 +38,9 @@ class WidgeonTest < Test::Unit::TestCase
     @path_to_configuration = File.join(@path_to_self, 'hello_world.yml')
     @path_to_helpers       = File.join(@path_to_fixtures, 'helping', 'helping_helper.rb')
     
+    @view = ActionView::Base.new(File.join(File.dirname(__FILE__), 'fixtures'), {})
+    @view.controller = WidgeonTestController.new
+    
     @callbacks = [ :before_render ]
     @widgets   = %w( helping configured hello_world )
     
@@ -79,15 +82,15 @@ class WidgeonTest < Test::Unit::TestCase
   end
     
   def test_configuration_loading_should_be_skipped_for_not_existing_file
-    assert_equal ["@call_options", "@id", "@request", "@created_instance_vars", "@controller", "@greet"].sort, hello_world.instance_variables.sort
+    assert_equal ["@call_options", "@id", "@request", "@created_instance_vars", "@controller", "@greet", "@view"].sort, hello_world.instance_variables.sort
   end
   
   def test_configuration_should_be_loaded_if_file_is_present
-    assert_equal 23, configured.new(controller, request).number
+    assert_equal 23, configured.new(@view, request).number
   end
   
   def test_initialize
-    assert_equal 'Luca', Widget.new(controller, request, :name => 'Luca').name
+    assert_equal 'Luca', Widget.new(@view, request, :name => 'Luca').name
   end
   
   def test_widget_name
@@ -147,11 +150,11 @@ class WidgeonTest < Test::Unit::TestCase
   end
   
   def hello_world(params = {})
-    @hello_world = Widget.load_widget('hello_world').new(controller, request, params)
+    @hello_world = Widget.load_widget('hello_world').new(@view, request, params)
   end
   
   def helping(params = {})
-    @helping = Widget.load_widget('helping').new(controller, request, params)
+    @helping = Widget.load_widget('helping').new(@view, request, params)
   end
   
   def configured

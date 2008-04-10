@@ -13,12 +13,13 @@ module Widgeon
     
     # Create a new instance of the widget.
     # Each value passed in <tt>options</tt> will be available as attribute.
-    def initialize(controller, request, options = {})
-      raise(ArgumentError, "Controller invalid") unless(controller.is_a?(ActionController::Base))
+    def initialize(view, request, options = {})
+      raise(ArgumentError, "Controller invalid") unless(view.respond_to?(:render))
       raise(ArgumentError, "Request invalid (#{request.class})") unless(request.is_a?(ActionController::AbstractRequest))
       load_helpers! # Load the helpers
       @id = options.delete(:id) # We must set that manually because we can't overwrite the accessor method
-      create_instance_accessor(:controller, controller);
+      create_instance_accessor(:view, view)
+      create_instance_accessor(:controller, view.controller);
       create_instance_accessor(:request, request)
       create_instance_accessor(:call_options, options)
       load_configuration! # Load the configuration options first
@@ -45,21 +46,23 @@ module Widgeon
  
     # Renders the widget itself, using the main widget template, enclosing it
     # in a <div> element and adding inlines styles if necessary.
-    def render(view)
-      content = render_template(view)
+    def render
+      content = render_template
       "#{inline_style}<div id=\"#{global_id}\">#{content}</div>"
     end
     
     # Render a template from the current widget directory
-    def render_template(view, template = nil, options = {})
-      raise(ArgumentError, "Must pass a ActionView, but was a #{view.class}") unless(view.respond_to?(:render))
+    def render_template(template = nil, options = {})
       # Save the widget object from the view. This is necessary in case 
       # a widget calls another widget (we expect to use the "inner" widget
       # call to use the "inner" widget, but we must restore the object
       # when we return control to the "outer" call
       caller_widget = view.w
       view.current_widget = self # Set the view's current widget to this one
+      # template ||= self.class.widget_name + "_widget"
+      # options[:file] = File.join(RAILS_ROOT, 'app', 'views', 'widgets', self.class.widget_name, "_#{template}.html.erb")
       options[:partial] = self.class.path_to_template(template)
+      options[:use_full_path] = false
       result = view.render(options)
       view.current_widget = caller_widget # Restore the original state of the view
       result
