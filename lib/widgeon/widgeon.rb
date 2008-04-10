@@ -16,7 +16,6 @@ module Widgeon
     def initialize(view, request, options = {})
       raise(ArgumentError, "Controller invalid") unless(view.respond_to?(:render))
       raise(ArgumentError, "Request invalid (#{request.class})") unless(request.is_a?(ActionController::AbstractRequest))
-      load_helpers! # Load the helpers
       @id = options.delete(:id) # We must set that manually because we can't overwrite the accessor method
       create_instance_accessor(:view, view)
       create_instance_accessor(:controller, view.controller);
@@ -72,6 +71,17 @@ module Widgeon
     end
     
     private
+    
+    # In case some method cannot be handled locally, it will be passed on to 
+    # the view. This makes all helpers etc. available in the widget methods
+    # (that can thus be written like helpers)
+    def method_missing(method, *args)
+      if(@view.public_methods.include?(method.to_s))
+        @view.method(method).call(*args)
+      else
+        super(method, *args)
+      end
+    end
     
     # Helper that returns the "inline style" for the widget. This will return
     # a <style> tag to be included in the HTML if the widget has a stylesheet
@@ -182,18 +192,5 @@ module Widgeon
       end
     end
     
-    # Loads the helpers for the wdgets if they exist. Currently,
-    # helpers for a widget will automatically be available in 
-    # *all* views.
-    def load_helpers!
-      return unless File.exists?(helper_file = self.class.path_to_helpers)
-      require_or_load helper_file
-      # TODO: These calls can be avoided when using "require"
-      mod = "#{self.class.widget_name.classify}Helper".constantize
-      raise(RuntimeError, "Didn't find correct helper module for #{self.class}") unless(mod.is_a?(Module))
-      ActionView::Base.class_eval do
-        include mod
-      end
-    end
   end
 end
