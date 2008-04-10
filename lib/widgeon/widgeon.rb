@@ -30,6 +30,8 @@ module Widgeon
       check_for_static_callback!
       on_init if(self.respond_to?(:on_init))
       create_instance_accessors_from_attributes
+      # Set the template directory for this call
+      view.append_view_path(self.class.path_to_templates)
     end
     
     # Return the id. The default id is "default"
@@ -52,6 +54,7 @@ module Widgeon
     
     # Render a template from the current widget directory
     def render_template(template = nil, options = {})
+      template ||= "#{self.class.widget_name}_widget"
       # Save the widget object from the view. This is necessary in case 
       # a widget calls another widget (we expect to use the "inner" widget
       # call to use the "inner" widget, but we must restore the object
@@ -60,7 +63,7 @@ module Widgeon
       view.current_widget = self # Set the view's current widget to this one
       # template ||= self.class.widget_name + "_widget"
       # options[:file] = File.join(RAILS_ROOT, 'app', 'views', 'widgets', self.class.widget_name, "_#{template}.html.erb")
-      options[:partial] = self.class.path_to_template(template)
+      options[:partial] = template
       options[:use_full_path] = false
       result = view.render(options)
       view.current_widget = caller_widget # Restore the original state of the view

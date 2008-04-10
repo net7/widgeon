@@ -49,13 +49,12 @@ module Widgeon
         @path_to_self ||= File.join(path_to_widgets, widget_name)
       end
       
-      # Return the path to the template that will be rendered.
-      # Convention: HelloWorldWidget => widgets/hello_world/hello_world_widget.html.erb
+      # Return the path where the templates for this class are located.
+      # Convention: HelloWorldWidget => widgets/hello_world
       #
       # If you do not give a template name, this will return the default template
-      def path_to_template(template_name = nil)
-        template_name ||= "#{widget_name}_widget"
-        File.join("widgets", widget_name, template_name)
+      def path_to_templates
+        @path_to_templates ||= File.join("widgets", widget_name)
       end
       
       # Gives the filesystem path for a "static" file
