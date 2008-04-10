@@ -46,16 +46,36 @@ Example:
 
   widgets/greeter_widget.rb:
   class GreeterWidget < Widgeon::Widget
-    def before_render
+    def on_init
       name = name.titleize
     end
   end
 
   app/views/widgets/greeter/_greeter.rhtml:
-  Welcome <%= @greeter_widget.name %>!!
+  Welcome <%= w.name %>!!
   
   The result will be:
   <h1>Welcome Luca!!</h1>
+
+As you can see the widget is made available as <tt>w.</tt> in the templates. 
+Basically, if you want to access the widget's methods and variables, just prefix
+the name with <tt>w.</tt>.
+
+When you write your widget code, remember that *rails helpers are available to
+the widget methods* - you can write the widget methods in the same way that 
+you write helpers. (For example, you could use <tt>url_for</tt> in a widget
+method).
+
+<tt>on_init</tt> is a special method that is called when the widget is 
+initialized. All the options passed to the widget will be available in this method,
+as well as the options from the config file.
+
+=== Options
+
+You can pass a hash of options to the <tt>widget()</tt> call. All options will
+be set as class variables with read and write accessors. An option hash can
+also be defined in a YAML file (named like the widget. The config options from
+the file will be loaded into the widget automatically when it is rendered.
 
 === Remote calls
 
@@ -108,14 +128,6 @@ behaviour by setting <tt>Widgeon::Widget::inline_styles = false</tt>.
 
 If you disable the inline styles, you will have to provide the widget's
 CSS styles by another mechanism.
-
-=== Helpers
-
-You can provide a collection of helpers in a file called <tt><widget_name>_helper.rb</tt>
-in the widget's directory. If you provide that file, it *must* declare
-a module called <tt><WidgetName>Helper</tt>. All methods in that
-module will be available as helper in *all* views - be careful not
-to overwrite existing helpers.
   
 == Create a widget
 

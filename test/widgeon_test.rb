@@ -36,13 +36,12 @@ class WidgeonTest < Test::Unit::TestCase
     @path_to_template        = File.join('widgets', 'hello_world', 'hello_world_widget')
     @path_to_self          = File.join(@path_to_fixtures, 'hello_world')
     @path_to_configuration = File.join(@path_to_self, 'hello_world.yml')
-    @path_to_helpers       = File.join(@path_to_fixtures, 'helping', 'helping_helper.rb')
     
     @view = ActionView::Base.new(File.join(File.dirname(__FILE__), 'fixtures'), {})
     @view.controller = WidgeonTestController.new
     
     @callbacks = [ :before_render ]
-    @widgets   = %w( helping configured hello_world )
+    @widgets   = %w( configured hello_world )
     
     Widget.send(:class_variable_set, :@@path_to_widgets, @path_to_fixtures)
   end
@@ -113,10 +112,6 @@ class WidgeonTest < Test::Unit::TestCase
     assert_equal @path_to_template, hello_world.class.path_to_template
   end
   
-  def test_path_to_helpers
-    assert_equal @path_to_helpers, helping.class.path_to_helpers
-  end
-  
   def test_path_to_configuration
     assert_equal @path_to_configuration, hello_world.class.path_to_configuration
   end
@@ -139,11 +134,6 @@ class WidgeonTest < Test::Unit::TestCase
     assert_equal("test", hello.session_get)
   end
   
-  def test_helper_include
-    helping # load the widget
-    assert(ActionView::Base.instance_methods.include?("the_helper_method"))
-  end
-  
   private
   def set_original_path
     Widget.send(:class_variable_set, :@@path_to_widgets, @path_to_widgets)
@@ -151,10 +141,6 @@ class WidgeonTest < Test::Unit::TestCase
   
   def hello_world(params = {})
     @hello_world = Widget.load_widget('hello_world').new(@view, request, params)
-  end
-  
-  def helping(params = {})
-    @helping = Widget.load_widget('helping').new(@view, request, params)
   end
   
   def configured

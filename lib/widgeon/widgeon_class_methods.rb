@@ -73,12 +73,6 @@ module Widgeon
         @path_to_configuration ||= File.join(path_to_self, "#{widget_name}.yml")
       end
       
-      # Return the path to the widget's helper module file
-      # Convention HelloWorldWidget => widgets/hellp_world/hello_world_helper.rb
-      def path_to_helpers
-        @path_to_helpers ||= File.join(path_to_self, "#{widget_name}_helper.rb")
-      end
-      
       # Return the widget name, based on the class name.
       #
       # Example:
