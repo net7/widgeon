@@ -73,7 +73,7 @@ module Widgeon
       
       link_to_remote(name, 
         { :url => { :controller => "widgeon", 
-            :action => "remote_call", 
+            :action => "callback", 
             :call_options => WidgeonEncoding.encode_options(options) 
           } },
         html_options )
@@ -90,7 +90,31 @@ module Widgeon
       @widget = widget
     end
     
+    # This adds all the header links and information for the given widget.
+    def widget_headers(*widgets)
+      headers = ""
+      for widget in widgets
+        klass = Widgeon::Widget.load_widget(widget.to_s)
+        klass.each_header do |type, name, options|
+          case type
+          when :javascript
+            widget_js_link(path)
+          when :stylesheet
+            widget_style_link(path, options)
+          else
+            raise(ArgumentError, "Unknown header type")
+          end
+        end
+      end
+      headers
+    end
+    
     private
+    
+    # Gets an url for an asset (stylesheet or javascript)
+    def widget_asset(widget_klass, name)
+      '/widgets/' << widget_klass.widget_name << '/' << name
+    end
     
     # Prepare an option hash for the current widget, to be used with AJAX 
     # callbacks
@@ -100,7 +124,7 @@ module Widgeon
       
       # Update the fallback option
       unless(options.has_key?(:fallback)) # See if fallback is set by the user
-         options[:fallback] = (options[:refresh] ? :reload : false) # determine the default
+        options[:fallback] = (options[:refresh] ? :reload : false) # determine the default
       end
       
       if(options.delete(:default_options))

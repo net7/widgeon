@@ -58,6 +58,15 @@ module Widgeon
         File.join("widgets", widget_name, template_name)
       end
       
+      # Gives the filesystem path for a "static" file
+      def path_to_static(name)
+        # Expand the path relative to the (virtual) root. This should kill paths
+        # that want to go outside the parent.
+        name = File.expand_path(name, '/')
+        # Now join the path to the widget's public root
+        File.join(path_to_self, "public", name)
+      end
+      
       # Return the path to the configuration.
       # Convention: HelloWorldWidget => widgets/hello_world/hello_world.yml
       def path_to_configuration
@@ -91,10 +100,28 @@ module Widgeon
         end
       end
       
+      # Returns the url 
+      
+      # Returns header links that were defined for the widget, rendering it
+      # for the given view.
+      def widget_headers(view)
+        headers = ""
+        for style in @stylesheets
+          headers << '<link href="' << path_to_static(style[:sheet]) << '" '
+          headers << 'media="' << style[:media] << '" '
+          headers << 'rel="stylesheet" '
+          headers << 'type="text/css" '
+          headers << "/>\n"
+        end
+        for js in @javascripts
+          
+        end
+      end
+      
       
       private
       
-      # Private helper to add a "remote call" to the widget
+      # Private method to add a "remote call" to the widget in subclasses
       def remote_call(name, &block)
         # Just create the method. We use a "remotecall" suffix, so that the
         # caller can make sure that a call goes to a remote call method (and
