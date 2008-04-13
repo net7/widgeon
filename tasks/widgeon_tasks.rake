@@ -32,7 +32,7 @@ namespace :widgeon do
     FileUtils.mkdir(widgets_root) unless File.directory?(widgets_root)
     File.install File.join(templates_root, 'widgeon_controller.rb'), File.join(rails_root, 'app', 'controllers')
     FileUtils.mkdir(widgeon_views) unless File.directory?(widgeon_views)
-    File.install File.join(templates_root, 'callback.rjs'), File.join(widgeon_views)
+    File.install File.join(templates_root, 'callback.rjs'), widgeon_views
     File.install File.join(templates_root, 'widgeon.rb', File.join(rails_root, 'config', 'initializers'))
   end
   
