@@ -14,4 +14,8 @@ class HelloWorldWidget < Widgeon::Widget
   def session_get
     widget_session[:test]
   end
+  
+  callback :test_callback do |page|
+    # test callback
+  end
 end

@@ -20,12 +20,84 @@ In your view files:
 You can also pass params:
 <%= widget(:widget_name, :param_one => 'one', :param_two => 'two') %>
 
+=== Style sheets and javascript files
+
+The widget may contain stylesheet (css) and javascript files (if it doesn't, you
+don't need to worry). 
+
+Stylesheets are easy - they will be automatically inlined in your HTML
+if you don't do anything special. 
+
+If you want to use javascript files, or if you want to link the stylesheet as
+separate files, you have to include them in the header file:
+
+ * Use the <tt>widget_stylesheet_links(*args)</tt> method for css stylesheets
+ * Use the <tt>widget_javascript_links(*args)</tt> method for javascript files
+
+If you place those *directly* in your layout *and* you don't use widgets in
+the layout itself, just use this methods without parameters. Otherwise they may
+need a little help - check their documentation on how to do this.
+
+If you use the stylesheet links, the inline stylesheets will automatically be
+deactivated for good.
+
+The style sheets, javascripts may either be served by the widget system, or 
+directly as static files. See below on how to configure Widgeon for those 
+different options.
+
+== Anatomy of a widget
+
+All the files for a widget are contained in a single folder. A basic widget
+needs just two files to work.
+
+The two basic files are the widget's template file (a standard Rails template)
+and the widget's code file (containing a subclass of Widgeon::Widget).
+
+Here's how the widget folder looks like:
+
+ - hello_world
+   +- code (*)
+     +- hello_world_widget.rb (*)
+   +- views (*)
+     +- _hello_world_widget.html.erb (*)
+   +- public
+     +- javascripts
+     +- stylesheets
+
+Only the files marked with (*) are required, the rest is optional - as you see
+it's just the code file and the template file.
+
+== Configuring the widget system
+
+The widget system can be configured using the standard initializer method 
+from Rails.
+
+=== Serving assets (stylesheets, javascripts, etc)
+
+There are two ways to serve static assets:
+ 
+ * The default method will serve the files directly through the widget system.
+   This will invoke a rails action, take the static file from the widget directory
+   and send it to the browser.
+ * The widget system may be configured to use Rails' default 'public' directory.
+   If you set <tt>Widgeon::Widget.asset_mode = :install</tt> in the initializer
+   all the static files are copied to 'public/widgets/...'.
+
+
+ * The <tt>:install</tt> method can be much faster; and the javascript and
+   stylesheet links (see above) will use the standard Rails helpers. This means
+   that you benefit from all built-in optimizations.
+ * The <tt>:install</tt> method will use different URLs for serving the data.
+   The helpers will automatically take care of this, but take not of it when
+   you reference files manually. The "default" URLs will still work, the 
+   framework will create a permanent redirect to the new resource.
+
 == Developing a widget
 
 First create a widget (see related section), the process will create two files:
 and helper and a class.
 For convention all params passed to the <tt>widget</tt> method will be available
-into the widget object.
+in the widget object.
 
 Example:
   <%= widget(:sidebar, :entries => 1..3) %>
@@ -69,6 +141,12 @@ method).
 <tt>on_init</tt> is a special method that is called when the widget is 
 initialized. All the options passed to the widget will be available in this method,
 as well as the options from the config file.
+
+=== Javascripts and stylesheets
+
+You can use the <tt>style</tt> and <tt>script</tt> methods to declare which 
+stylesheets and javascript files should be included in the header links. By default,
+this will just include all existing styles and scripts automatically.
 
 === Options
 

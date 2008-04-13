@@ -1,7 +1,7 @@
 require 'zlib'
 require 'base64'
 
-module WidgeonEncoding
+class WidgeonEncoding
   
   # Encodes the given option hash for HTML, adding a hash (using the
   # session secret) for security

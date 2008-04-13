@@ -13,7 +13,7 @@ module WidgetWillPaginate
     def page_link_or_span(page, span_class = 'current', text = nil)
       text ||= page.to_s
       if page and page != current_page
-        @template.widget_remote_link(text, backlink_options(page).merge(@options[:backlink_options])) + "\n"
+        @template.w.remote_link(text, backlink_options(page).merge(@options[:backlink_options])) + "\n"
       else
         @template.content_tag :span, text, :class => span_class
       end

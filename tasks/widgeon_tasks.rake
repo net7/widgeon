@@ -3,11 +3,12 @@ require 'rake/testtask'
 require 'rake/rdoctask'
 require 'ftools'
 
-rails_root	   = File.expand_path(RAILS_ROOT)
-plugin_root	   = File.join(rails_root, 'vendor', 'plugins', 'widgeon')
+rails_root     = File.expand_path(RAILS_ROOT)
+plugin_root    = File.join(rails_root, 'vendor', 'plugins', 'widgeon')
 view_root      = File.join(rails_root, 'app', 'views')
 widgets_root   = File.join(view_root, 'widgets')
 templates_root = File.join(plugin_root, 'templates')
+widgeon_views  = File.join(view_root, 'widgeon')
 
 desc "Default task for widgeon plugin (test task)."
 task :widgeon => :default
@@ -29,9 +30,10 @@ namespace :widgeon do
   desc "Install the widgeon plugin."
   task :install do
     FileUtils.mkdir(widgets_root) unless File.directory?(widgets_root)
-    File.cp File.join(templates_root, 'widgeon_controller.rb'), File.join(rails_root, 'app', 'controllers')
-    File.cp File.join(templates_root, 'widgeon_helper.rb'), File.join(rails_root, 'app', 'helpers')
-    File.cp File.join(templates_root, 'widget.js'), File.join(rails_root, 'public', 'javascripts')
+    File.install File.join(templates_root, 'widgeon_controller.rb'), File.join(rails_root, 'app', 'controllers')
+    FileUtils.mkdir(widgeon_views) unless File.directory?(widgeon_views)
+    File.install File.join(templates_root, 'callback.rjs'), File.join(widgeon_views)
+    File.install File.join(templates_root, 'widgeon.rb', File.join(rails_root, 'config', 'initializers'))
   end
   
   desc 'Generate documentation for the widgeon plugin.'

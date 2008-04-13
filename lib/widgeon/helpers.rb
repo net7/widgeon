@@ -6,77 +6,10 @@ module Widgeon
     #
     #   <%= widget(:sidebar, :title => 'My Shiny Sidebar') %>
     def widget(widget_name, options = {})
-      widget = Widget.load_widget(widget_name.to_s).new(self, request, options)
+      widget = Widget.load_widget(widget_name.to_s).new(self, options)
+      @auto_widgets ||= []
+      @auto_widgets << widget_name # add to the list of already rendered widgets
       widget.render
-    end
-    
-    # Helper to render a partial in the widget folder
-    def widget_partial(partial, options = {})
-      w.render_template(partial, options)
-    end
-    
-    
-    # Create a remote link to a widget. A remote link will be send through an
-    # remote call to the widget engine. All options that are not used
-    # for creating the remote link will be available to the widget in the
-    # remote call.
-    # 
-    # The widget in the remote call will have all properties that are
-    # in the widget's configuration file, but all other parameters needed for
-    # the remote operation must be passed through the options hash. 
-    # 
-    # == Rendering modes
-    # 
-    # At the moment there are two modes for remote links
-    # 
-    # * <tt>:refresh</tt> - Replace the widget's content (that is, the
-    #   content of the widget's <div> element with the given template. If
-    #   <tt>:refresh => :default</tt> is given, this will render the widget's
-    #   default template
-    # * <tt>:javascript</tt> - Will use a javascript handler to modify the page.
-    #   The javascript handler must be defined within the widget.
-    # 
-    # == Fallback
-    # 
-    # The <tt>:fallback</tt> option may be an URL string or an <tt>url_for</tt>
-    # hash may be given. This will be set as the <tt>href</tt> of the link and
-    # will be used in case javascript is disabled in the browser.
-    # 
-    # Alternatively, the <tt>:fallback</tt> option may be set to
-    # <tt>:fallback => :reload</tt>. This will cause the link to be directed
-    # to the widget system. The widget system will reload the page, and all
-    # widgets on the page will be set up for the "callback" mode. The "current"
-    # widget will receive the option hash from the remot link when the page
-    # is reloaded.
-    # 
-    # By passing false to the fallback parameter, the mechanism will be disabled.
-    # 
-    # By default the remote link will use the "<tt>:reload</tt>" mechanism
-    # for template rendering, and no fallback for
-    # javascript renderers.
-    # 
-    # == Default options
-    # 
-    # If the option <tt>:default_options => true</tt> is used, the callback
-    # will include the options that were passed to the widget during it's 
-    # initialization
-    # 
-    # == Examples
-    #
-    #  widget_remote_link("foo", :refresh => :default, :static_url => "http://foo")
-    #  widget_remote_link("foobar", :refresh => "my_template", :fallback => false)
-    #  widget_remote_link("bar", :javascript => :my_handler, :my_option => "now")
-    def widget_remote_link(name, options, html_options = {})
-      prepare_options!(options)
-      fallback_uri = prepare_fallback_uri!(options)
-      html_options[:href] = fallback_uri
-      
-      link_to_remote(name, 
-        { :url => { :controller => "widgeon", 
-            :action => "callback", 
-            :call_options => WidgeonEncoding.encode_options(options) 
-          } },
-        html_options )
     end
     
     # This is a special helper which returns the widget object for the 
@@ -90,80 +23,112 @@ module Widgeon
       @widget = widget
     end
     
-    # This adds all the header links and information for the given widget.
-    def widget_headers(*widgets)
-      headers = ""
-      for widget in widgets
-        klass = Widgeon::Widget.load_widget(widget.to_s)
-        klass.each_header do |type, name, options|
-          case type
-          when :javascript
-            widget_js_link(path)
-          when :stylesheet
-            widget_style_link(path, options)
-          else
-            raise(ArgumentError, "Unknown header type")
-          end
+    # Adds stylesheet links for the configured widgets. This can take the 
+    # special values <tt>:all</tt> or <tt>:auto</tt> or a list of widget names. 
+    #
+    # The <tt>:auto</tt> value may be used in a layout and will automatically
+    # pick up all widgets that are render in templates using that layout. It
+    # will not pick up widgets that are used in the layout itself. <tt>:auto</tt>
+    # can be combined with a list of widget names that are passed manually.
+    # 
+    # <tt>:all</tt> will load the sheets for *all* widgets that are installed
+    # on the system. To do so, it will perform a one-time scan of the widget
+    # directory.
+    # 
+    # The default value is <tt>:auto</tt>
+    #
+    # The result will be cached in the fragment cache. Calling this method 
+    # disables inline rendering of styles!
+    def widget_stylesheet_links(*widgets)
+      Widgeon::Widget.inline_styles = false
+      loop_for_widgets('widgeon/style_headers', *widgets) do |widget|
+        collect_strings_from(widget.stylesheets) do |style|
+          widget_stylesheet_link(widget, style)
         end
       end
-      headers
     end
+    
+    # This is basically the same as widget_style_links, but for javascripts.
+    def widget_javascript_links(*widgets)
+      loop_for_widgets('widgeon/script_headers', *widgets) do |widget|
+        collect_strings_from(widget.javascripts) do |script|
+          widget_javascript_link(widget, script)
+        end
+      end
+    end
+    
     
     private
     
-    # Gets an url for an asset (stylesheet or javascript)
-    def widget_asset(widget_klass, name)
-      '/widgets/' << widget_klass.widget_name << '/' << name
-    end
-    
-    # Prepare an option hash for the current widget, to be used with AJAX 
-    # callbacks
-    def prepare_options!(options)
-      raise(ArgumentError, "Illegal options") unless(options.is_a?(Hash))
-      raise(ArgumentError, "Must give either the :refresh or the :javascript option") unless(options[:refresh] || options[:javascript])
-      
-      # Update the fallback option
-      unless(options.has_key?(:fallback)) # See if fallback is set by the user
-        options[:fallback] = (options[:refresh] ? :reload : false) # determine the default
-      end
-      
-      if(options.delete(:default_options))
-        options.merge(w.call_options) # Add the default options
-      end
-      
-      # Add the URI to the widget
-      options[:widget_class] = w.class.widget_name
-      options[:widget_id] = w.id
-      # The request params are only needed when the page is reloaded from the fallback
-      options[:request_params] = w.request.parameters if(options[:fallback] == :reload)
-      options
-    end
-    
-    # Creates the fallback link from the option hash, and modifies the option
-    # hash accordingly.
-    def prepare_fallback_uri!(options)
-      fallback_option = options[:fallback]
-      fallback_url = ""
-      
-      # Now we create the URL that is used for the fallback
-      case fallback_option
-      when :reload # Create the linkback to the widget system
-        options[:fallback_enabled] = true
-        fallback_url = url_for(:controller => "widgeon", 
-          :action => "remote_call", 
-          :call_options => WidgeonEncoding.encode_options(options))
-        options.delete(:fallback_enabled) # We don't need this any further
-      when false, nil
-        fallback_url = '#'
+    # Creates a stylesheet link for a single widget stylesheet. This takes
+    # the name of the widget and the name of the stylesheet.
+    def widget_stylesheet_link(widget, style)
+      if(Widgeon::Widget.asset_mode == :widget)
+        # Use the home-brew link to the widget system
+        link = '<link href="'
+        link << '/widgeon/' << widget.widget_name
+        link << '/stylesheets/' << style << '.css" '
+        link << 'media="screen" rel="stylesheet" type="text/css" />'
+        link << "\n"
+        link
       else
-        if(fallback_option.is_a?(Hash))
-          fallback_url = url_for(fallback_option)
-        else
-          fallback_url = fallback_option
-        end
+        # use default stylesheet helpers
+        stylesheet_link_tag(widget.web_path_to_public + "/stylesheets/#{style}")
       end
+    end
+    
+    # The same as widget_stylesheet_link, but for javascripts
+    def widget_javascript_link(widget, script)
+      if(Widgeon::Widget.asset_mode == :widget)
+        link = '<script type="text/javascript" src="'
+        link << '/widgeon/' << widget.widget_name
+        link << '/javascripts/' << script << '.js"></script>'
+        link << "\n"
+        link
+      else
+        javascript_include_tag(widget.web_path_to_public + "/javascripts/#{script}")
+      end
+    end
+    
+    # This is a helper used for the <tt>widget_style_links</tt> and 
+    # <tt>widget_javascript_links</tt>. It takes the same options as those,
+    # and calls the given block for each widget. The block will be passed an
+    # object of the widget's class.
+    # 
+    # This will expect that the called block returns a string, and will append
+    # all return strings into on.
+    #
+    # The result of this call will be cached in Rails fragment cache, using
+    # the given cache key
+    def loop_for_widgets(cache_key, *widgets, &block)
+      # Check the cache. read_fragment should return nil if caching is
+      # not active, so there's no need for an additional check
+      cached = controller.read_fragment(cache_key)
+      return cached if(cached)
       
-      fallback_url
+      # If all is given, load all the widget names
+      if(widgets.delete(:all))
+        widgets += Widgeon::Widget.list_widgets
+      end
+      # If auto is given, add the automatic
+      if(widgets.delete(:auto) || widgets.size == 0)
+        widgets += @auto_widgets if(@auto_widgets)
+      end
+      # Remove duplicates
+      widgets.uniq!
+      loop_result = collect_strings_from(widgets) { |widget| block.call(Widgeon::Widget.load_widget(widget)) }
+      
+      # Write to the cache
+      controller.write_fragment(cache_key, loop_result)
+      loop_result
+    end
+    
+    # Little helper to run a block on with each element of the collection,
+    # and return the result as a string
+    def collect_strings_from(collection, &block)
+      collected_string = ''
+      collection.each { |e| collected_string << block.call(e) }
+      collected_string
     end
     
   end

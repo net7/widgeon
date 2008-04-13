@@ -8,7 +8,7 @@ end
 gem_spec = Gem::Specification.new do |spec|
   spec.name = "widgeon"
   spec.version = "0.0.1"
-  spec.author = "Luca Guidi"
+  spec.author = "Luca Guidi and Daniel Hahn"
   spec.email = ""
   spec.homepage = "http://talia.discovery-project.eu/"
   spec.platform = Gem::Platform::RUBY
