@@ -33,7 +33,7 @@ namespace :widgeon do
     File.install File.join(templates_root, 'widgeon_controller.rb'), File.join(rails_root, 'app', 'controllers')
     FileUtils.mkdir(widgeon_views) unless File.directory?(widgeon_views)
     File.install File.join(templates_root, 'callback.rjs'), widgeon_views
-    File.install File.join(templates_root, 'widgeon.rb', File.join(rails_root, 'config', 'initializers'))
+    File.install File.join(templates_root, 'widgeon.rb'), File.join(rails_root, 'config', 'initializers')
   end
   
   desc 'Generate documentation for the widgeon plugin.'
