@@ -1,6 +1,13 @@
 class <%= widget_class_name %>Widget < Widgeon::Widget
   
-  # This callback will be run at the last stage of widget initialization
-  def before_render
+  # This will run during the widget initialization. You can use all options
+  # for the widget as class variables, and all class variables that
+  # you set will be available as accessors in the template.
+  def on_init
   end
+  
+  # Example callback for javascript
+  # callback :first_callback do |page|
+  #   page.insert_html(options)
+  # end
 end

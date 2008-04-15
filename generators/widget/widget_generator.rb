@@ -10,12 +10,16 @@ class WidgetGenerator < Rails::Generator::NamedBase
       # Check for class collisions
       m.class_collisions class_name
       
-      m.directory File.join(Widgeon::Widget.path_to_widgets, name.underscore)
+      m.directory File.join(Widgeon::WIDGEON_REL_ROOT, name.underscore, 'code')
+      m.directory File.join(Widgeon::WIDGEON_REL_ROOT, name.underscore, 'views')
+      m.directory File.join(Widgeon::WIDGEON_REL_ROOT, name.underscore, 'public')
+      m.directory File.join(Widgeon::WIDGEON_REL_ROOT, name.underscore, 'public', 'javascripts')
+      m.directory File.join(Widgeon::WIDGEON_REL_ROOT, name.underscore, 'public', 'stylesheets')
       
       # Create files
-      m.template 'widget.rb', File.join(Widgeon::Widget.path_to_widgets, name.underscore, @widget_file_name),
+      m.template 'widget.rb', File.join(Widgeon::WIDGEON_REL_ROOT, name.underscore, 'code', @widget_file_name),
         :assigns => { :widget_class_name => class_name }
-      m.template 'widget.rhtml', File.join(Widgeon::Widget.path_to_widgets, name.underscore, @widget_view_file),
+      m.template 'widget.rhtml', File.join(Widgeon::WIDGEON_REL_ROOT, name.underscore, 'views', @widget_view_file),
         :assigns => { :widget_name => name.underscore }
     end
   end

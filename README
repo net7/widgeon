@@ -31,8 +31,8 @@ if you don't do anything special.
 If you want to use javascript files, or if you want to link the stylesheet as
 separate files, you have to include them in the header file:
 
- * Use the <tt>widget_stylesheet_links(*args)</tt> method for css stylesheets
- * Use the <tt>widget_javascript_links(*args)</tt> method for javascript files
+* Use the <tt>widget_stylesheet_links(*args)</tt> method for css stylesheets
+* Use the <tt>widget_javascript_links(*args)</tt> method for javascript files
 
 If you place those *directly* in your layout *and* you don't use widgets in
 the layout itself, just use this methods without parameters. Otherwise they may
@@ -76,21 +76,21 @@ from Rails.
 
 There are two ways to serve static assets:
  
- * The default method will serve the files directly through the widget system.
-   This will invoke a rails action, take the static file from the widget directory
-   and send it to the browser.
- * The widget system may be configured to use Rails' default 'public' directory.
-   If you set <tt>Widgeon::Widget.asset_mode = :install</tt> in the initializer
-   all the static files are copied to 'public/widgets/...'.
+* The default method will serve the files directly through the widget system.
+  This will invoke a rails action, take the static file from the widget directory
+  and send it to the browser.
+* The widget system may be configured to use Rails' default 'public' directory.
+  If you set <tt>Widgeon::Widget.asset_mode = :install</tt> in the initializer
+  all the static files are copied to 'public/widgets/...'.
 
 
- * The <tt>:install</tt> method can be much faster; and the javascript and
-   stylesheet links (see above) will use the standard Rails helpers. This means
-   that you benefit from all built-in optimizations.
- * The <tt>:install</tt> method will use different URLs for serving the data.
-   The helpers will automatically take care of this, but take not of it when
-   you reference files manually. The "default" URLs will still work, the 
-   framework will create a permanent redirect to the new resource.
+* The <tt>:install</tt> method can be much faster; and the javascript and
+  stylesheet links (see above) will use the standard Rails helpers. This means
+  that you benefit from all built-in optimizations.
+* The <tt>:install</tt> method will use different URLs for serving the data.
+  The helpers will automatically take care of this, but take not of it when
+  you reference files manually. The "default" URLs will still work, the 
+  framework will create a permanent redirect to the new resource.
 
 == Developing a widget
 

@@ -2,8 +2,11 @@ require 'ftools'
 
 module Widgeon
   
+  # Relative root to the widgeon dir
+  WIDGEON_REL_ROOT = File.join('app', 'views', 'widgets')
+  
   # Root path to root directory where the widgets are located. 
-  WIDGEON_ROOT = File.join(RAILS_ROOT, 'app', 'views', 'widgets')
+  WIDGEON_ROOT = File.join(RAILS_ROOT, WIDGEON_REL_ROOT)
   
   # Path to the public asset directory for the widgets (inside Rails' public dir)
   WIDGEON_PUBLIC_ASSETS = File.join(RAILS_ROOT, 'public', 'widgets')
