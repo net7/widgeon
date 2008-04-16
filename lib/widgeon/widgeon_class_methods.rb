@@ -200,6 +200,7 @@ module Widgeon
       
       # Returns the widget's style files concentaned into one string
       def widget_style
+        return "" unless(inline_styles)
         return @widget_style if(@widget_style && (Dependencies.mechanism == :require))
         @widget_style = load_style_files
       end
