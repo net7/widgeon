@@ -100,7 +100,13 @@ class WidgeonTest < Test::Unit::TestCase
   def test_stylesheet
     @assets.send(:style, 'style1.css')
     comp = File.open(File.join(@assets.path_to_stylesheets, 'style1.css')) { |f| f.read }
+    Widgeon::Widget.inline_styles= true
     assert_equal comp, @assets.widget_style
+  end
+  
+  def test_stylesheet_disable
+    Widgeon::Widget.inline_styles= false
+    assert_equal '', @assets.widget_style
   end
   
   def test_asset_installation
