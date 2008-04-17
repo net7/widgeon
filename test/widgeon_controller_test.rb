@@ -21,7 +21,7 @@ class WidgeonControllerTest < ActionController::TestCase
   end
   
   def test_ajax_callback_refresh
-    enc_options = WidgeonEncoding.encode_options(:widget_class => 'hello_world', :refresh => :default)
+    enc_options = WidgeonEncoding.encode_options(:widget_class => 'hello_world', :widget_id => 'test', :refresh => :default)
     xhr :get, :callback, :call_options => enc_options
     assert_response :success
   end
@@ -41,13 +41,13 @@ class WidgeonControllerTest < ActionController::TestCase
   end
   
   def test_ajax_callback_javascript
-    enc_options = WidgeonEncoding.encode_options(:widget_class => 'hello_world', :javascript => 'test_callback')
+    enc_options = WidgeonEncoding.encode_options(:widget_class => 'hello_world', :widget_id => 'test', :javascript => 'test_callback')
     xhr :get, :callback, :call_options => enc_options
     assert_response :success
   end
   
   def test_ajax_callback_javascript_unknown
-    enc_options = WidgeonEncoding.encode_options(:widget_class => 'hello_world', :javascript => 'test_ups')
+    enc_options = WidgeonEncoding.encode_options(:widget_class => 'hello_world', :widget_id => 'test', :javascript => 'test_ups')
     assert_raises(ActionView::TemplateError) do
       xhr :get, :callback, :call_options => enc_options
     end
