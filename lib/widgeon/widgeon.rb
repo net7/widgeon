@@ -19,7 +19,8 @@ module Widgeon
     # Each value passed in <tt>options</tt> will be available as attribute.
     def initialize(view, options = {})
       raise(ArgumentError, "View invalid") unless(view.respond_to?(:render))
-      @id = options.delete(:id) # We must set that manually because we can't overwrite the accessor method
+      id = options.delete(:id) || options.delete(:widget_id)
+      create_instance_accessor(:widget_id, id)
       create_instance_accessor(:view, view)
       create_instance_accessor(:controller, view.controller);
       create_instance_accessor(:request, view.controller.request)
@@ -37,27 +38,29 @@ module Widgeon
       view.append_view_path(self.class.path_to_templates)
     end
     
-    # Return the id. The default id is "default"
-    def id
-      @id ||= "default"
-    end
-    
     # Returns the "global id". This is a combination of the widget's id
     # and the widget's class.
     def global_id
-      @global_id ||= "#{self.class.widget_name}-#{id}"
+      @global_id ||= "#{self.class.widget_name}-#{widget_id}"
     end
  
     # Renders the widget itself, using the main widget template, enclosing it
     # in a <div> element and adding inlines styles if necessary.
     def render
-      content = render_template
-      "#{self.class.widget_style}<div id=\"#{global_id}\">#{content}</div>"
+      render_result = ''
+      render_result << self.class.widget_style.to_s
+      render_result << '<div '
+      if(widget_id)
+        render_result << 'id="' << global_id << '" ' 
+      end
+      render_result << 'class="'<< self.class.widget_name << '_widget" >'
+      render_result << render_template
+      render_result << '</div>'
     end
     
     # Render a template from the current widget directory
     def render_template(template = nil, options = {})
-      template ||= "#{self.class.widget_name}_widget"
+      template ||= '' << self.class.widget_name << '_widget'
       # Save the widget object from the view. This is necessary in case 
       # a widget calls another widget (we expect to use the "inner" widget
       # call to use the "inner" widget, but we must restore the object
@@ -185,7 +188,7 @@ module Widgeon
       
       callback_options = WidgeonEncoding.decode_options(@request.parameters[:widgeon_callback])
       # For security, check the callback options agains the parameters
-      raise(ArgumentError, "Callback parameters did not match") unless(callback_options[:widget_id] == id && callback_options[:widget_class] == self.class.widget_name)
+      raise(ArgumentError, "Callback parameters did not match") unless(callback_options[:widget_id] == widget_id && callback_options[:widget_class] == self.class.widget_name)
       setup_static_callback!(callback_options)
     end
     
@@ -213,7 +216,7 @@ module Widgeon
     # session. The contents will be private for the widget class/id combination
     # of this widget
     def widget_session
-      @request.session["#{self.class.widget_name}-#{id}"] ||= {}
+      @request.session["#{self.class.widget_name}-#{widget_id}"] ||= {}
     end
     
     # Create an instance variable and an accessor for it with the given name and
@@ -269,6 +272,8 @@ module Widgeon
     def prepare_remote_link_options!(options)
       raise(ArgumentError, "Illegal options") unless(options.is_a?(Hash))
       raise(ArgumentError, "Must give either the :refresh or the :javascript option") unless(options[:refresh] || options[:javascript])
+      raise(ArgumentError, "Widget must have an id to use remote links.") unless(widget_id)
+      
       
       # Update the fallback option
       unless(options.has_key?(:fallback)) # See if fallback is set by the user
@@ -281,7 +286,7 @@ module Widgeon
       
       # Add the URI to the widget
       options[:widget_class] = self.class.widget_name
-      options[:widget_id] = id
+      options[:widget_id] = widget_id
       # The request params are only needed when the page is reloaded from the fallback
       options[:request_params] = request.parameters if(options[:fallback] == :reload)
       options

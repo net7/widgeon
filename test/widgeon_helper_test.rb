@@ -19,8 +19,14 @@ class WidgeonHelperTest < Test::Unit::TestCase
     @view.current_widget = @hello_instance # Needed for the "inside" helpers that get the w. property from the view
   end
   
-  def test_widget
-    assert_dom_equal %(<div id="hello_world-default"><p>Hello World!</p></div>), @view.widget(:hello_world)
+  def test_widget_noid
+    assert_dom_equal %(<div class="hello_world_widget"><p>Hello World!</p></div>), @view.widget(:hello_world)
+    # Assert if the auto widget was set
+    assert @view.instance_variable_get(:@auto_widgets).include?(:hello_world)
+  end
+  
+  def test_widget_noid
+    assert_dom_equal %(<div id="hello_world-first_hello" class="hello_world_widget"><p>Hello World!</p></div>), @view.widget(:hello_world, :id => 'first_hello')
     # Assert if the auto widget was set
     assert @view.instance_variable_get(:@auto_widgets).include?(:hello_world)
   end

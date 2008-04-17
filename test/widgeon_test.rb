@@ -16,6 +16,7 @@ class WidgeonTest < Test::Unit::TestCase
     
     @hello = Widget.load_widget('hello_world')
     @hello_instance = @hello.new(@view, :my_option => "set")
+    @hello_instance_id = @hello.new(@view, :id => "first_hello")
     
     @assets = Widget.load_widget('asset_test')
     # This evil little trick clears the setup "by hand" so that we can test it
@@ -49,13 +50,13 @@ class WidgeonTest < Test::Unit::TestCase
     assert_equal 'hello_world', @hello.widget_name
   end
   
-  def test_id_should_return_widget_name_if_not_explicitly_defined
-    assert_equal 'default', @hello_instance.id
+  def test_id_nil
+    assert_equal nil, @hello_instance.widget_id
   end
   
   def test_id
     widget = @hello.new(@view, :id => 'greetings')
-    assert_equal 'greetings', widget.id
+    assert_equal 'greetings', widget.widget_id
   end
  
   def test_create_instance_accessors_from_attributes
@@ -120,7 +121,11 @@ class WidgeonTest < Test::Unit::TestCase
   end
   
   def test_render
-    assert_dom_equal %(<div id="hello_world-default"><p>Hello World!</p></div>), @hello_instance.render
+    assert_dom_equal %(<div class="hello_world_widget"><p>Hello World!</p></div>), @hello_instance.render
+  end
+  
+  def test_render_id
+    assert_dom_equal %(<div id="hello_world-first_hello" class="hello_world_widget"><p>Hello World!</p></div>), @hello_instance_id.render
   end
   
   def test_partial
