@@ -19,6 +19,7 @@ module Widgeon
     # Each value passed in <tt>options</tt> will be available as attribute.
     def initialize(view, options = {})
       raise(ArgumentError, "View invalid") unless(view.respond_to?(:render))
+      raise(ArgumentError, "HTML options must be a hash") unless(!options[:html_options] || options[:html_options].is_a?(Hash))
       id = options.delete(:id) || options.delete(:widget_id)
       create_instance_accessor(:widget_id, id)
       create_instance_accessor(:view, view)
@@ -53,7 +54,17 @@ module Widgeon
       if(widget_id)
         render_result << 'id="' << global_id << '" ' 
       end
-      render_result << 'class="'<< self.class.widget_name << '_widget" >'
+      css_class = self.class.widget_name + "_widget"
+      options = ''
+      if(@html_options)
+        css_class << ' ' << @html_options.delete(:class)
+        @html_options.each do |name, value|
+          options << name.to_s << '="' << value << '" '
+        end
+      end
+      render_result << 'class="'<< css_class << '" '
+      render_result << options
+      render_result << '>'
       render_result << render_template
       render_result << '</div>'
     end

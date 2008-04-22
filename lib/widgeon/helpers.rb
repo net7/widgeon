@@ -2,6 +2,16 @@ module Widgeon
   module Helpers
     # Instantiate and render a widget.
     #
+    # There are some special options that are recognized by the widget system.
+    # Also note that the names <tt>:view</tt>, <tt>:controller</tt> and 
+    # <tt>:request</tt> are protected, as well as all method names that already
+    # exist on the Widget class.
+    # 
+    # * <tt>:widget_id</tt>  or <tt>:id</tt> - A string that uniquely identifies
+    #   the widget instances. Only widgets with an id can use remote links.
+    # * <tt>:html_options</tt> - a hash of options that will be used on the 
+    #   widget's <div> tag.
+    # 
     # Example:
     #
     #   <%= widget(:sidebar, :title => 'My Shiny Sidebar') %>
