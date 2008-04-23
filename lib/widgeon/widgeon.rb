@@ -283,7 +283,7 @@ module Widgeon
     def prepare_remote_link_options!(options)
       raise(ArgumentError, "Illegal options") unless(options.is_a?(Hash))
       raise(ArgumentError, "Must give either the :refresh or the :javascript option") unless(options[:refresh] || options[:javascript])
-      raise(ArgumentError, "Widget must have an id to use remote links.") unless(widget_id)
+      raise(ArgumentError, "Widget must have an id to use remote links for reload.") unless(widget_id || options[:javascript])
       
       
       # Update the fallback option
