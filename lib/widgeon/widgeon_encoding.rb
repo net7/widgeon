@@ -35,7 +35,7 @@ class WidgeonEncoding
   
   # Creates a digest for the data
   def self.create_digest(data)
-    OpenSSL::HMAC.hexdigest(OpenSSL::Digest::Digest.new('sha'), secret, data)
+    OpenSSL::HMAC.hexdigest(OpenSSL::Digest::Digest.new('md5'), secret, data)
   end
   
   # Returns the given Hash as a string in a repeatable fashion
