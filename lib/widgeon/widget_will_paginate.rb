@@ -53,10 +53,11 @@ module WidgetWillPaginate
       options[:backlink_options] = backlink_options
       
       # early exit if there is nothing to render
-      return nil unless collection.page_count > 1
+      return nil unless collection.total_pages > 1
       options = options.symbolize_keys.reverse_merge WillPaginate::ViewHelpers.pagination_options
       # create the renderer instance
-      renderer = WidgetWillPaginate::WidgetBacklinkRenderer.new collection, options, self
+      renderer = WidgetWillPaginate::WidgetBacklinkRenderer.new 
+      renderer.prepare(collection, options, self)
       # render HTML for pagination
       renderer.to_html
     end
